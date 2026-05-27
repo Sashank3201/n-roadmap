@@ -1,4 +1,4 @@
-const CACHE_NAME = 'netrecon-v2';
+const CACHE_NAME = 'netrecon-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -16,7 +16,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Activate: prune any old caches
+// Activate: prune any old caches and take control
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys().then((keys) => {
@@ -32,26 +32,29 @@ self.addEventListener('activate', (e) => {
   );
 });
 
-// Fetch: cache-first, then network, with offline HTML fallback
+// Fetch: network-first, with cache fallback
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(e.request).then((networkResponse) => {
-        // Dynamically cache external resources (fonts, etc.)
-        if (e.request.url.startsWith('http')) {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(e.request, networkResponse.clone());
-            return networkResponse;
+    fetch(e.request)
+      .then((networkResponse) => {
+        // Cache the freshly fetched resource
+        if (networkResponse && networkResponse.status === 200) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseClone);
           });
         }
         return networkResponse;
-      });
-    }).catch(() => {
-      // Offline fallback — serve the cached HTML page
-      return caches.match('./index.html');
-    })
+      })
+      .catch(() => {
+        // Network failed (offline) -> serve from cache
+        return caches.match(e.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // If offline and request is index.html or empty, return cached index
+          return caches.match('./index.html');
+        });
+      })
   );
 });
