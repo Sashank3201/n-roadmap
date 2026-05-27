@@ -1,7 +1,7 @@
 const CACHE_NAME = 'netrecon-v2';
 const ASSETS = [
   './',
-  './network_recon.html',
+  './index.html',
   './manifest.json',
   'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap'
 ];
@@ -51,7 +51,7 @@ self.addEventListener('fetch', (e) => {
       });
     }).catch(() => {
       // Offline fallback — serve the cached HTML page
-      return caches.match('./network_recon.html');
+      return caches.match('./index.html');
     })
   );
 });
