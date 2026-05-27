@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" shape-rendering="geometricPrecision">
+  <!-- iOS / "any" purpose: rounded square background -->
+  <rect width="512" height="512" rx="114" fill="#0a0a0c"/>
+
+  <!-- Subtle technical grid -->
+  <g stroke="#e8e8ec" stroke-width="0.75" opacity="0.04">
+    <line x1="256" y1="64"  x2="256" y2="448"/>
+    <line x1="64"  y1="256" x2="448" y2="256"/>
+  </g>
+
+  <!-- Concentric radar rings -->
+  <g fill="none" stroke="#e8e8ec">
+    <circle cx="256" cy="256" r="176" stroke-width="2"   opacity="0.22"/>
+    <circle cx="256" cy="256" r="128" stroke-width="2"   opacity="0.40"/>
+    <circle cx="256" cy="256" r="80"  stroke-width="2"   opacity="0.58"/>
+    <circle cx="256" cy="256" r="36"  stroke-width="2"   opacity="0.82"/>
+  </g>
+
+  <!-- Outer crosshair ticks -->
+  <g stroke="#e8e8ec" stroke-width="3" stroke-linecap="round" opacity="0.42">
+    <line x1="256" y1="58"  x2="256" y2="82"/>
+    <line x1="256" y1="430" x2="256" y2="454"/>
+    <line x1="58"  y1="256" x2="82"  y2="256"/>
+    <line x1="430" y1="256" x2="454" y2="256"/>
+  </g>
+
+  <!-- Center hub -->
+  <circle cx="256" cy="256" r="10" fill="#e8e8ec"/>
+
+  <!-- Sweep arm to target (upper right quadrant) -->
+  <line x1="256" y1="256" x2="394" y2="164" stroke="#e8e8ec" stroke-width="6.5" stroke-linecap="round"/>
+
+  <!-- Acquired target — hollow ring + filled core -->
+  <circle cx="394" cy="164" r="23" fill="#0a0a0c" stroke="#e8e8ec" stroke-width="3.5"/>
+  <circle cx="394" cy="164" r="10" fill="#e8e8ec"/>
+
+  <!-- Corner registration brackets (viewfinder motif) -->
+  <g stroke="#e8e8ec" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.32">
+    <path d="M58 76  L58 58  L76 58"/>
+    <path d="M454 76 L454 58 L436 58"/>
+    <path d="M58 436 L58 454 L76 454"/>
+    <path d="M454 436 L454 454 L436 454"/>
+  </g>
+</svg>

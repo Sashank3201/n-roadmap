@@ -1,0 +1,3054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Recon — A 30-Day Field Manual</title>
+<meta name="description" content="Thirty days of packets, ports, and shells for network hackers. A premium offline-capable field manual.">
+<meta name="theme-color" content="#0a0a0c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NetRecon">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<link rel="apple-touch-icon" href="./icon.svg">
+<link rel="mask-icon" href="./favicon.svg" color="#e8e8ec">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0c;
+    --bg-soft: #0f0f12;
+    --surface: #131318;
+    --surface-2: #1a1a20;
+    --line: rgba(255,255,255,0.07);
+    --line-strong: rgba(255,255,255,0.12);
+    --ink: #f4f4f6;
+    --ink-soft: #c8c8d0;
+    --ink-dim: #8a8a96;
+    --ink-mute: #5a5a66;
+
+    --indigo: #6366f1;
+    --indigo-soft: #818cf8;
+    --lavender: #c4b5fd;
+    --aqua: #67e8f9;
+    --gold: #f5d28a;
+    --rose: #f0a5b1;
+    --green: #86efac;
+
+    --code-bg: #0c0c10;
+    --study-bg: #0d0c14;
+    --ask-bg: #0c0f10;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    letter-spacing: -0.005em;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 100;
+    mix-blend-mode: overlay;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 24px 120px;
+    position: relative;
+  }
+
+  .hero {
+    position: relative;
+    padding: 80px 0 100px;
+    margin-bottom: 80px;
+  }
+  .hero-bg {
+    position: absolute;
+    inset: -40px -200px 0 -200px;
+    background:
+      radial-gradient(ellipse 60% 80% at 30% 70%, rgba(99,102,241,0.45), transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 40%, rgba(129,140,248,0.25), transparent 60%),
+      radial-gradient(ellipse 40% 50% at 50% 90%, rgba(196,181,253,0.2), transparent 60%);
+    filter: blur(40px);
+    z-index: -1;
+    pointer-events: none;
+  }
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eyebrow::before {
+    content: '';
+    width: 24px; height: 1px;
+    background: var(--ink-dim);
+  }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(48px, 9vw, 88px);
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    margin-bottom: 28px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    font-weight: 300;
+    background: linear-gradient(110deg, var(--aqua), var(--indigo-soft) 40%, var(--rose) 70%, var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    white-space: nowrap;
+    padding-right: 0.15em;
+  }
+  .hero p.lede {
+    font-size: 18px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    max-width: 520px;
+    font-weight: 300;
+    letter-spacing: -0.01em;
+  }
+  .hero p.lede strong { color: var(--ink); font-weight: 500; }
+
+  /* HOW TO USE */
+  .howto {
+    margin: 48px 0 80px;
+    padding: 32px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+  }
+  .howto-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .howto h4 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin-bottom: 18px;
+  }
+  .howto-steps { display: grid; gap: 14px; }
+  .howto-step {
+    display: flex; gap: 16px; align-items: flex-start;
+    font-size: 14px;
+    color: var(--ink-soft);
+    font-weight: 300;
+  }
+  .howto-step .icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .howto-step.s1 .icon { background: rgba(196,181,253,0.12); color: var(--lavender); border: 1px solid rgba(196,181,253,0.25); }
+  .howto-step.s2 .icon { background: rgba(134,239,172,0.1); color: var(--green); border: 1px solid rgba(134,239,172,0.25); }
+  .howto-step.s3 .icon { background: rgba(103,232,249,0.1); color: var(--aqua); border: 1px solid rgba(103,232,249,0.25); }
+  .howto-step strong { color: var(--ink); font-weight: 500; }
+
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    padding: 32px 0;
+    margin-bottom: 80px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .meta-item .num {
+    font-family: 'Fraunces', serif;
+    font-size: 36px;
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .meta-item .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+  @media (max-width: 600px) {
+    .meta { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* PHASE COVER */
+  .phase-cover {
+    position: relative;
+    margin: 100px 0 60px;
+    padding: 80px 36px;
+    border-radius: 24px;
+    overflow: hidden;
+    isolation: isolate;
+    min-height: 320px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .phase-cover::before {
+    content: '';
+    position: absolute; inset: 0; z-index: -2;
+    background: var(--bg-soft);
+  }
+  .phase-cover::after {
+    content: '';
+    position: absolute; inset: 0; z-index: -1;
+    opacity: 0.9;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n2'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' /%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n2)' opacity='0.35'/%3E%3C/svg%3E");
+    mix-blend-mode: overlay;
+  }
+  .phase-1 .phase-cover {
+    background:
+      radial-gradient(ellipse 70% 90% at 20% 80%, rgba(129,140,248,0.55), transparent 60%),
+      radial-gradient(ellipse 50% 60% at 80% 40%, rgba(196,181,253,0.4), transparent 60%),
+      linear-gradient(180deg, #0a0a14, #14142a);
+  }
+  .phase-2 .phase-cover {
+    background:
+      radial-gradient(ellipse 60% 80% at 70% 70%, rgba(103,232,249,0.4), transparent 55%),
+      radial-gradient(ellipse 50% 60% at 20% 30%, rgba(134,239,172,0.3), transparent 60%),
+      linear-gradient(180deg, #0a0e12, #0e1a1f);
+  }
+  .phase-3 .phase-cover {
+    background:
+      radial-gradient(ellipse 70% 90% at 80% 30%, rgba(245,210,138,0.45), transparent 55%),
+      radial-gradient(ellipse 50% 60% at 30% 80%, rgba(240,165,177,0.35), transparent 60%),
+      linear-gradient(180deg, #110a08, #1a120e);
+  }
+  .phase-4 .phase-cover {
+    background:
+      radial-gradient(ellipse 65% 85% at 50% 50%, rgba(99,102,241,0.5), transparent 55%),
+      radial-gradient(ellipse 40% 55% at 85% 85%, rgba(103,232,249,0.3), transparent 60%),
+      radial-gradient(ellipse 40% 55% at 15% 15%, rgba(245,210,138,0.25), transparent 60%),
+      linear-gradient(180deg, #08080c, #0e0e1a);
+  }
+  .phase-marker {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    opacity: 0.85;
+  }
+  .phase-cover h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(40px, 7vw, 64px);
+    line-height: 1;
+    letter-spacing: -0.035em;
+    margin-bottom: 20px;
+  }
+  .phase-cover h2 em { font-style: italic; }
+  .phase-cover .days {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    letter-spacing: 0.15em;
+  }
+  .phase-cover .intent {
+    margin-top: 24px;
+    font-size: 16px;
+    color: var(--ink-soft);
+    max-width: 480px;
+    font-weight: 300;
+  }
+
+  /* DAY */
+  .day {
+    margin: 48px 0;
+    padding: 36px 0;
+    border-top: 1px solid var(--line);
+  }
+  .day:first-of-type { border-top: none; padding-top: 12px; }
+  .day-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    letter-spacing: 0.25em;
+    margin-bottom: 14px;
+  }
+  .day h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 400;
+    font-size: clamp(26px, 3.6vw, 34px);
+    line-height: 1.1;
+    letter-spacing: -0.025em;
+    margin-bottom: 12px;
+  }
+  .day h3 em { font-style: italic; font-weight: 300; color: var(--ink-soft); }
+  .day .day-lede {
+    font-size: 15.5px;
+    color: var(--ink-soft);
+    font-weight: 300;
+    margin-bottom: 24px;
+    max-width: 600px;
+  }
+  .day p { margin: 12px 0; color: var(--ink-soft); font-weight: 300; }
+  .day p strong { color: var(--ink); font-weight: 500; }
+
+  /* SECTION DIVIDER (study / practical / ask claude headers) */
+  .sect {
+    display: flex; align-items: center; gap: 12px;
+    margin: 28px 0 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .sect::before { content: ''; width: 16px; height: 1px; background: var(--ink-dim); }
+  .sect.study::before { background: var(--lavender); }
+  .sect.study { color: var(--lavender); }
+  .sect.exec::before { background: var(--green); }
+  .sect.exec { color: var(--green); }
+  .sect.ask::before { background: var(--aqua); }
+  .sect.ask { color: var(--aqua); }
+
+  /* CODE BLOCK (Apple-style) */
+  .code {
+    margin: 12px 0 24px;
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 1px 0 rgba(255,255,255,0.04) inset,
+      0 24px 48px -24px rgba(0,0,0,0.5);
+  }
+  .code-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+  }
+  .code-bar .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+  }
+  .code-bar .dot:nth-child(1) { background: #ff5f57; }
+  .code-bar .dot:nth-child(2) { background: #febc2e; }
+  .code-bar .dot:nth-child(3) { background: #28c840; }
+  .code-bar .label {
+    margin-left: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.05em;
+  }
+  .code pre {
+    padding: 20px 20px 22px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .code pre::-webkit-scrollbar { height: 6px; }
+  .code pre::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 3px; }
+
+  /* STUDY variant — lavender tint */
+  .code.study {
+    background: var(--study-bg);
+    border-color: rgba(196,181,253,0.15);
+    box-shadow:
+      0 1px 0 rgba(196,181,253,0.05) inset,
+      0 24px 48px -24px rgba(0,0,0,0.6);
+  }
+  .code.study .code-bar { border-bottom-color: rgba(196,181,253,0.12); }
+  .code.study .code-bar .label { color: var(--lavender); opacity: 0.7; }
+
+  /* ASK variant — aqua tint, compact */
+  .code.ask {
+    background: var(--ask-bg);
+    border-color: rgba(103,232,249,0.15);
+  }
+  .code.ask .code-bar { border-bottom-color: rgba(103,232,249,0.12); }
+  .code.ask .code-bar .label { color: var(--aqua); opacity: 0.7; }
+  .code.ask pre { font-size: 12.5px; padding: 16px 20px 18px; }
+
+  /* Syntax tokens */
+  .cmd { color: var(--ink); font-weight: 500; }
+  .cmd::before { content: '$ '; color: var(--ink-mute); font-weight: 400; }
+  .com { color: var(--ink-mute); font-style: italic; }
+  .com::before { content: '# '; }
+  .hi { color: var(--gold); }
+  .ok { color: var(--green); }
+  .bad { color: #f87171; }
+  .info { color: var(--aqua); }
+  .mag { color: #d8b4fe; }
+  .key { color: var(--lavender); }
+  .heredoc { color: #f0a5b1; }
+  .sect-title { color: var(--gold); font-weight: 600; }
+  .check { color: var(--green); }
+  .bullet { color: var(--lavender); }
+  .url { color: var(--aqua); text-decoration: underline; text-decoration-color: rgba(103,232,249,0.3); text-underline-offset: 3px; }
+
+  /* DIAGRAM */
+  .diagram {
+    margin: 24px 0;
+    padding: 28px 24px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }
+  .diagram-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .diagram pre {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--ink-soft);
+    overflow-x: auto;
+    white-space: pre;
+  }
+
+  /* CALLOUTS */
+  .callout {
+    margin: 24px 0;
+    padding: 20px 24px;
+    border-radius: 14px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+  }
+  .callout-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .callout-label::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .callout-body {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    font-weight: 300;
+    line-height: 1.6;
+  }
+  .callout-body strong { color: var(--ink); font-weight: 500; }
+
+  .callout.lab { border-color: rgba(245,210,138,0.2); }
+  .callout.lab .callout-label { color: var(--gold); }
+  .callout.lab .callout-label::before { background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+
+  .callout.warn { border-color: rgba(248,113,113,0.2); }
+  .callout.warn .callout-label { color: #f87171; }
+  .callout.warn .callout-label::before { background: #f87171; box-shadow: 0 0 12px #f87171; }
+
+  .callout.tip { border-color: rgba(103,232,249,0.2); }
+  .callout.tip .callout-label { color: var(--aqua); }
+  .callout.tip .callout-label::before { background: var(--aqua); box-shadow: 0 0 12px var(--aqua); }
+
+  /* WORKFLOW */
+  .flow {
+    margin: 24px 0;
+    padding: 24px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+  }
+  .flow-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-mute);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .flow ol { list-style: none; counter-reset: step; }
+  .flow ol li {
+    counter-increment: step;
+    position: relative;
+    padding: 12px 0 12px 48px;
+    border-top: 1px solid var(--line);
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    font-weight: 300;
+  }
+  .flow ol li:first-child { border-top: none; padding-top: 4px; }
+  .flow ol li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.1em;
+  }
+  .flow ol li:first-child::before { top: 6px; }
+  .flow ol li strong { color: var(--ink); font-weight: 500; }
+  .flow ol li code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    background: var(--code-bg);
+    color: var(--gold);
+    padding: 2px 8px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+  }
+
+  code.inline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: var(--code-bg);
+    color: var(--gold);
+    padding: 2px 8px;
+    border-radius: 5px;
+    border: 1px solid var(--line);
+  }
+
+  /* TABLE */
+  .table-wrap {
+    margin: 24px 0;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  table.refined {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  table.refined th, table.refined td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+    font-weight: 300;
+  }
+  table.refined tr:last-child td { border-bottom: none; }
+  table.refined th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+    background: var(--surface);
+  }
+  table.refined td { color: var(--ink-soft); }
+  table.refined td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--gold);
+    font-size: 12.5px;
+  }
+  table.refined td strong { color: var(--ink); font-weight: 500; }
+
+  ul.next { list-style: none; margin: 16px 0; }
+  ul.next li {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+    color: var(--ink-soft);
+    font-weight: 300;
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+  }
+  ul.next li::before {
+    content: '→';
+    color: var(--indigo-soft);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  ul.next li strong { color: var(--ink); font-weight: 500; }
+
+  .end {
+    margin-top: 120px;
+    padding: 80px 0 40px;
+    border-top: 1px solid var(--line);
+    text-align: center;
+  }
+  .end-mark {
+    font-family: 'Fraunces', serif;
+    font-size: 48px;
+    font-style: italic;
+    font-weight: 300;
+    background: linear-gradient(110deg, var(--aqua), var(--indigo-soft), var(--rose), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-bottom: 16px;
+  }
+  .end-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-mute);
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+
+  .hero, .meta, .phase-cover, .day {
+    animation: rise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero { animation-delay: 0.05s; }
+  .meta { animation-delay: 0.15s; }
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ──────────────────────────────────────────────────────────
+     GLOBAL NAV — refined: monochrome segmented control + craft details
+     ────────────────────────────────────────────────────────── */
+  :root {
+    --nav-h: 60px;
+    --nav-h-scrolled: 52px;
+    --nav-bottom-h: 64px;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0.2, 0, 0, 1);
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* iOS PWA status-bar cap */
+  .status-bar-cap {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--safe-top);
+    background: rgba(10,10,12,0.96);
+    z-index: 220;
+    pointer-events: none;
+  }
+
+  .global-nav {
+    position: sticky;
+    top: var(--safe-top);
+    z-index: 200;
+    height: var(--nav-h);
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    column-gap: 24px;
+    padding: 0 24px;
+    background: rgba(10,10,12,0.72);
+    backdrop-filter: blur(22px) saturate(1.5);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    transition: height 220ms var(--ease), background 220ms var(--ease), border-color 220ms var(--ease);
+    isolation: isolate;
+  }
+  .global-nav.scrolled {
+    height: var(--nav-h-scrolled);
+    background: rgba(10,10,12,0.9);
+    border-bottom-color: rgba(255,255,255,0.09);
+  }
+  /* Subtle inner top highlight — glass depth cue */
+  .global-nav::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.06) 70%, transparent);
+    pointer-events: none;
+  }
+
+  /* Scroll-progress hairline */
+  .nav-progress {
+    position: absolute;
+    left: 0; bottom: -1px;
+    height: 1.5px;
+    width: 0%;
+    background: var(--ink);
+    opacity: 0.7;
+    transition: width 120ms linear;
+    z-index: 2;
+    will-change: width;
+    pointer-events: none;
+  }
+
+  /* ── Brand: radar logomark + wordmark ── */
+  .nav-brand {
+    font-family: 'Inter Tight', sans-serif;
+    font-weight: 500;
+    font-size: 14.5px;
+    color: var(--ink);
+    letter-spacing: -0.012em;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    padding: 4px 2px;
+    transition: opacity 180ms var(--ease);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-brand:hover { opacity: 0.78; }
+  .nav-brand:focus-visible { outline: none; opacity: 0.78; }
+  .nav-brand-text { display: inline-flex; align-items: baseline; gap: 6px; }
+  .nav-brand-version {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+  }
+  .nav-brand-mark {
+    width: 20px;
+    height: 20px;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .nav-brand-mark svg { display: block; width: 100%; height: 100%; }
+
+  /* ── Tabs — segmented control with frosted sliding indicator ── */
+  .nav-tabs {
+    display: flex;
+    align-items: center;
+    justify-self: center;
+    position: relative;
+    padding: 4px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 11px;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
+  }
+  .nav-indicator {
+    position: absolute;
+    top: 4px;
+    left: 0;
+    height: calc(100% - 8px);
+    border-radius: 7px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+    transition:
+      transform 320ms var(--ease),
+      width 320ms var(--ease),
+      opacity 200ms var(--ease);
+    pointer-events: none;
+    opacity: 0;
+    z-index: 0;
+    will-change: transform, width;
+  }
+  .nav-tab {
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 12.5px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--ink-dim);
+    background: transparent;
+    border: none;
+    padding: 7px 14px;
+    border-radius: 7px;
+    cursor: pointer;
+    white-space: nowrap;
+    position: relative;
+    z-index: 1;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 180ms var(--ease);
+  }
+  .nav-tab:hover { color: var(--ink-soft); }
+  .nav-tab:focus-visible { outline: none; color: var(--ink); }
+  .nav-tab.active { color: var(--ink); }
+
+  /* ── Right cluster ── */
+  .nav-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-self: end;
+  }
+
+  /* Refined badge — "30·DAYS" technical context chip */
+  .nav-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 28px;
+    padding: 0 10px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.025);
+    border: 1px solid rgba(255,255,255,0.05);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+  }
+  .nav-badge .badge-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 0 2px rgba(120,236,159,0.12);
+    transition: background 180ms var(--ease), box-shadow 180ms var(--ease);
+  }
+  .nav-badge.is-offline .badge-dot {
+    background: var(--rose);
+    box-shadow: 0 0 0 2px rgba(238,160,172,0.12);
+  }
+
+  /* Vertical divider — only shows when install button is available */
+  .nav-divider {
+    display: none;
+    width: 1px;
+    height: 18px;
+    background: rgba(255,255,255,0.08);
+  }
+  .nav-status:has(.nav-install.is-available) .nav-divider { display: block; }
+
+  /* Ghost install button */
+  .nav-install {
+    height: 30px;
+    padding: 0 12px;
+    border-radius: 7px;
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: -0.005em;
+    color: var(--ink-soft);
+    background: rgba(255,255,255,0.02);
+    border: 1px solid rgba(255,255,255,0.08);
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 7px;
+    transition: color 180ms var(--ease), background 180ms var(--ease), border-color 180ms var(--ease);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .nav-install.is-available { display: inline-flex; }
+  .nav-install:hover {
+    color: var(--ink);
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.16);
+  }
+  .nav-install:focus-visible { outline: none; color: var(--ink); border-color: rgba(255,255,255,0.22); }
+  .nav-install svg {
+    width: 12px; height: 12px;
+    stroke: currentColor;
+    stroke-width: 1.75;
+    fill: none;
+  }
+
+  /* ──────────── MOBILE BOTTOM TAB BAR ──────────── */
+  .bottom-nav {
+    position: fixed;
+    left: 0; right: 0;
+    bottom: 0;
+    height: calc(var(--nav-bottom-h) + var(--safe-bottom));
+    padding-bottom: var(--safe-bottom);
+    z-index: 205;
+    display: none;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: stretch;
+    background: rgba(10,10,12,0.92);
+    backdrop-filter: blur(22px) saturate(1.5);
+    -webkit-backdrop-filter: blur(22px) saturate(1.5);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    transition: transform 260ms var(--ease), opacity 220ms var(--ease);
+    transform: translateY(0);
+    opacity: 1;
+  }
+  .bottom-nav::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 30%, rgba(255,255,255,0.08) 70%, transparent);
+    pointer-events: none;
+  }
+  .bottom-nav.is-hidden {
+    transform: translateY(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .bottom-nav-indicator {
+    position: absolute;
+    top: 0; left: 0;
+    width: 0; height: 1.5px;
+    background: var(--ink);
+    border-radius: 1px;
+    transition:
+      transform 320ms var(--ease),
+      width 320ms var(--ease),
+      opacity 200ms var(--ease);
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, width;
+  }
+  .bottom-tab {
+    position: relative;
+    background: none;
+    border: none;
+    color: var(--ink-mute);
+    font-family: 'Inter Tight', sans-serif;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 6px 4px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 180ms var(--ease);
+  }
+  .bottom-tab svg {
+    width: 20px; height: 20px;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    fill: none;
+    transition: stroke-width 180ms var(--ease);
+  }
+  .bottom-tab.active { color: var(--ink); }
+  .bottom-tab.active svg { stroke-width: 1.8; }
+
+  /* ── Responsive ── */
+  @media (max-width: 960px) {
+    .global-nav { column-gap: 16px; padding: 0 20px; }
+    .nav-tab { padding: 7px 11px; font-size: 12px; }
+    .nav-badge .badge-label { display: none; }
+    .nav-badge { padding: 0 8px; }
+  }
+  @media (max-width: 760px) {
+    .global-nav { padding: 0 16px; column-gap: 12px; height: 56px; }
+    .global-nav.scrolled { height: 50px; }
+    .nav-tabs { display: none; }
+    .nav-badge { display: none; }
+    .nav-divider { display: none; }
+    .bottom-nav { display: grid; }
+    .wrap { padding-bottom: calc(var(--nav-bottom-h) + 40px + var(--safe-bottom)); }
+  }
+  @media (max-width: 380px) {
+    .nav-install { display: none !important; }
+    .bottom-tab { font-size: 10px; }
+    .bottom-tab svg { width: 19px; height: 19px; }
+  }
+
+  /* ── Section transitions — clean opacity-only fade ── */
+  .section-content {
+    display: none;
+    opacity: 0;
+    transition: opacity 220ms var(--ease);
+    will-change: opacity;
+  }
+  .section-content.active {
+    display: block;
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .global-nav, .nav-tab, .nav-indicator, .bottom-tab, .bottom-tab svg,
+    .bottom-nav, .bottom-nav-indicator, .nav-progress, .section-content,
+    .nav-badge, .nav-install {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- iOS PWA safe-area cap -->
+<div class="status-bar-cap" aria-hidden="true"></div>
+
+<!-- GLOBAL NAVIGATION BAR -->
+<nav class="global-nav" id="global-nav" aria-label="Primary">
+  <button class="nav-brand" id="nav-brand" type="button" aria-label="Go to overview">
+    <span class="nav-brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="9.5" stroke-width="1" opacity="0.35"/>
+        <circle cx="12" cy="12" r="6" stroke-width="1" opacity="0.6"/>
+        <circle cx="12" cy="12" r="2.4" stroke-width="1" opacity="0.85"/>
+        <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>
+        <path d="M12 12 L19.5 7" stroke-width="1.25" stroke-linecap="round"/>
+        <circle cx="19.5" cy="7" r="1.2" fill="currentColor" stroke="none"/>
+      </svg>
+    </span>
+    <span class="nav-brand-text">
+      <span>Netrecon</span>
+      <span class="nav-brand-version">v1.0</span>
+    </span>
+  </button>
+
+  <div class="nav-tabs" id="nav-tabs-container" role="tablist" aria-label="Sections">
+    <div class="nav-indicator" id="nav-indicator" aria-hidden="true"></div>
+    <button class="nav-tab active" type="button" role="tab" aria-selected="true" data-section="overview">Overview</button>
+    <button class="nav-tab" type="button" role="tab" aria-selected="false" data-section="phase-1">Week 1</button>
+    <button class="nav-tab" type="button" role="tab" aria-selected="false" data-section="phase-2">Week 2</button>
+    <button class="nav-tab" type="button" role="tab" aria-selected="false" data-section="phase-3">Week 3</button>
+    <button class="nav-tab" type="button" role="tab" aria-selected="false" data-section="phase-4">Week 4</button>
+  </div>
+
+  <div class="nav-status">
+    <div class="nav-badge" id="nav-online" title="30-day field manual · online">
+      <span class="badge-dot" aria-hidden="true"></span>
+      <span class="badge-label">30·Days</span>
+    </div>
+    <span class="nav-divider" aria-hidden="true"></span>
+    <button class="nav-install" id="nav-install" type="button" aria-label="Install app">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19h14" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Install
+    </button>
+  </div>
+
+  <div class="nav-progress" id="nav-progress" aria-hidden="true"></div>
+</nav>
+
+<!-- MOBILE BOTTOM TAB BAR (PWA-native) -->
+<nav class="bottom-nav" id="bottom-nav" aria-label="Primary mobile">
+  <div class="bottom-nav-indicator" id="bottom-nav-indicator" aria-hidden="true"></div>
+  <button class="bottom-tab active" type="button" role="tab" aria-selected="true" data-section="overview">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="2.4" fill="currentColor" stroke="none"/></svg>
+    <span class="bt-label">Overview</span>
+  </button>
+  <button class="bottom-tab" type="button" role="tab" aria-selected="false" data-section="phase-1">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14a14 14 0 0 1 18 0"/><path d="M6.5 17.5a9 9 0 0 1 11 0"/><circle cx="12" cy="20" r="1.5" fill="currentColor" stroke="none"/></svg>
+    <span class="bt-label">Week 1</span>
+  </button>
+  <button class="bottom-tab" type="button" role="tab" aria-selected="false" data-section="phase-2">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/><circle cx="8" cy="7" r="0.9" fill="currentColor" stroke="none"/><circle cx="8" cy="17" r="0.9" fill="currentColor" stroke="none"/></svg>
+    <span class="bt-label">Week 2</span>
+  </button>
+  <button class="bottom-tab" type="button" role="tab" aria-selected="false" data-section="phase-3">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M12 16h5"/></svg>
+    <span class="bt-label">Week 3</span>
+  </button>
+  <button class="bottom-tab" type="button" role="tab" aria-selected="false" data-section="phase-4">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3"/></svg>
+    <span class="bt-label">Week 4</span>
+  </button>
+</nav>
+
+<div class="wrap">
+
+  <!-- OVERVIEW SECTION -->
+  <div class="section-content active" id="section-overview">
+    <section class="hero">
+      <div class="hero-bg"></div>
+      <div class="eyebrow">A 30-Day Field Manual</div>
+      <h1>Network <em>recon</em><br>for hackers.</h1>
+      <p class="lede">
+        Theory you can already Google. <strong>This is the wire.</strong> Thirty days of packets, ports, and shells — built so you stop reading and start touching the network.
+      </p>
+    </section>
+
+    <div class="howto">
+      <div class="howto-title">How each day works</div>
+      <h4>Three blocks. <em style="font-style:italic">In this order.</em></h4>
+      <div class="howto-steps">
+        <div class="howto-step s1">
+          <div class="icon">📖</div>
+          <div><strong>Study</strong> — read the concept. Watch one video. Absorb the mental model before you touch the keyboard.</div>
+        </div>
+        <div class="howto-step s2">
+          <div class="icon">⚡</div>
+          <div><strong>Execute</strong> — type every command in a live terminal. Copy-paste teaches nothing.</div>
+        </div>
+        <div class="howto-step s3">
+          <div class="icon">💬</div>
+          <div><strong>Ask Claude</strong> — paste the prompt into Claude. Get quizzed. Solidify what you just did.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="meta-item"><div class="num">04</div><div class="lbl">Phases</div></div>
+      <div class="meta-item"><div class="num">30</div><div class="lbl">Days</div></div>
+      <div class="meta-item"><div class="num">18</div><div class="lbl">Tools</div></div>
+      <div class="meta-item"><div class="num">20</div><div class="lbl">Labs</div></div>
+    </div>
+  </div>
+
+  <!-- ============== PHASE 1 ============== -->
+  <div class="section-content" id="section-phase-1">
+  <div class="phase-1">
+    <div class="phase-cover">
+      <div class="phase-marker">Phase One</div>
+      <h2>See the <em>wire.</em></h2>
+      <div class="days">Days 01 — 07</div>
+      <p class="intent">Stop trusting diagrams. Watch real packets cross your machine. Understand what your laptop does the instant you type a URL.</p>
+    </div>
+
+    <!-- DAY 01 -->
+    <div class="day">
+      <div class="day-num">Day 01</div>
+      <h3>Lab setup &amp; first capture</h3>
+      <p class="day-lede">Install Kali in a VM with bridged networking. Verify connectivity. Read your interface like it's telling you a story.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-01-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-01.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> What a VM is and why pentesters use isolated labs
+  <span class="bullet">•</span> Bridged vs NAT vs Host-Only networking (huge difference!)
+  <span class="bullet">•</span> The OSI &amp; TCP/IP layer models (review, you've seen this)
+  <span class="bullet">•</span> IP / MAC / Gateway / DNS — what each one DOES
+
+<span class="sect-title">RESOURCES   (≈ 50 min)</span>
+  <span class="bullet">•</span> NetworkChuck — "How to Install Kali Linux" (YouTube, 12m)
+  <span class="bullet">•</span> PowerCert Animated Videos — "The OSI Model Explained" (8m)
+  <span class="bullet">•</span> Practical Networking — "Networking Fundamentals" playlist, ep 1-3
+  <span class="bullet">•</span> Read: <span class="url">https://www.kali.org/docs/installation/</span>
+
+<span class="sect-title">VOCAB</span>
+  hypervisor   bridged   NAT   loopback   eth0   gateway   resolver
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can explain why bridged networking matters for sniffing
+  <span class="check">□</span> I know what /etc/resolv.conf does
+  <span class="check">□</span> I can identify my IP, MAC, and gateway without help
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">kali ~ zsh</span></div>
+<pre><span class="cmd">ip a</span>
+<span class="com">show all interfaces, MAC, IPv4/v6</span>
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt;
+    link/ether <span class="hi">08:00:27:a1:b2:c3</span>
+    inet <span class="ok">192.168.1.42</span>/24 brd 192.168.1.255
+
+<span class="cmd">ip route</span>
+default via <span class="hi">192.168.1.1</span> dev eth0   <span class="com">← gateway</span>
+
+<span class="cmd">ping -c 2 google.com</span>
+64 bytes from 142.250.183.110: time=12.3 ms</pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=01</span></span>
+"<span class="info">Walk me through installing Kali in VirtualBox with bridged
+networking step by step. Then quiz me on what my </span><span class="hi">ip a</span><span class="info">,
+</span><span class="hi">ip route</span><span class="info"> and </span><span class="hi">/etc/resolv.conf</span><span class="info"> output mean
+on my actual setup.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 02 -->
+    <div class="day">
+      <div class="day-num">Day 02</div>
+      <h3>The <em>handshake,</em> seen.</h3>
+      <p class="day-lede">Open Wireshark, capture <code class="inline">curl http://example.com</code>, identify every packet of the TCP three-way handshake.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-02-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-02.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> TCP vs UDP — why TCP needs a handshake, UDP doesn't
+  <span class="bullet">•</span> Sequence numbers + ACK numbers, and why they exist
+  <span class="bullet">•</span> What "stateful" means at the transport layer
+  <span class="bullet">•</span> TCP flags: SYN, ACK, FIN, RST, PSH, URG
+  <span class="bullet">•</span> Wireshark interface basics — capture, filter, follow stream
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> Computerphile — "TCP Meets UDP" (YouTube, 8m)
+  <span class="bullet">•</span> David Bombal — "Wireshark Tutorial for Beginners" (25m)
+  <span class="bullet">•</span> Practical Networking — "TCP Three-Way Handshake" (10m)
+  <span class="bullet">•</span> Julia Evans zine: "How TCP works" — wizardzines.com
+
+<span class="sect-title">VOCAB</span>
+  SYN   ACK   FIN   RST   seq=   ack=   MSS   window
+  display filter   capture filter   Follow TCP Stream
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can draw the 3-way handshake on paper from memory
+  <span class="check">□</span> I know what each TCP flag does
+  <span class="check">□</span> I know why the handshake is needed at all
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="flow">
+        <div class="flow-title">Capture procedure</div>
+        <ol>
+          <li>Open Wireshark, select <code>eth0</code>, start capture.</li>
+          <li>In another terminal: <code>curl http://example.com</code>.</li>
+          <li>Stop capture. Filter: <code>ip.addr == 93.184.215.14 &amp;&amp; tcp</code>.</li>
+          <li>Find <strong>SYN → SYN/ACK → ACK</strong> in the packet list.</li>
+          <li>Right-click → <strong>Follow → TCP Stream</strong>. Read the plaintext HTTP.</li>
+        </ol>
+      </div>
+      <div class="diagram">
+        <div class="diagram-label">TCP three-way handshake</div>
+<pre>  CLIENT                                  SERVER
+   192.168.1.42                       93.184.215.14
+        |                                    |
+        | ─── SYN  seq=0  ─────────────────▶ |   "let's talk"
+        |                                    |
+        | ◀── SYN/ACK  seq=0 ack=1  ──────── |   "ok, you talk"
+        |                                    |
+        | ─── ACK  seq=1 ack=1  ───────────▶ |   "here's data"
+        |                                    |
+        | ─── HTTP GET / ──────────────────▶ |
+        | ◀── HTTP 200 OK ────────────────── |</pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=02</span></span>
+"<span class="info">I just ran my first Wireshark capture against
+</span><span class="hi">http://example.com</span><span class="info">. Help me decode my actual packet list.
+I'll paste the SYN/SYN-ACK/ACK rows — explain each field
+(seq, ack, win, flags) and quiz me on what comes next.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 03 -->
+    <div class="day">
+      <div class="day-num">Day 03</div>
+      <h3>Subnetting by <em>feel.</em></h3>
+      <p class="day-lede">Stop calculating. Recognize CIDR ranges on sight — it's pattern memory, not math.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-03-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-03.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> Binary representation of IPv4 addresses
+  <span class="bullet">•</span> Subnet masks &amp; CIDR notation (/24, /16, etc.)
+  <span class="bullet">•</span> Network address, broadcast address, usable range
+  <span class="bullet">•</span> RFC1918 private ranges (10/8, 172.16/12, 192.168/16)
+  <span class="bullet">•</span> Why pentesters care: scope definitions live in CIDR
+
+<span class="sect-title">RESOURCES   (≈ 45 min)</span>
+  <span class="bullet">•</span> NetworkChuck — "Subnetting Mastery" Pt 1 (YouTube, 30m)
+  <span class="bullet">•</span> Professor Messer — "IPv4 Subnetting" (Network+ N10-008)
+  <span class="bullet">•</span> Practice: <span class="url">https://subnettingpractice.com</span>
+
+<span class="sect-title">VOCAB</span>
+  CIDR   prefix length   subnet mask   broadcast
+  RFC1918   private vs public   classless routing
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can say "/24 = 254 hosts" without thinking
+  <span class="check">□</span> I know all three RFC1918 ranges by heart
+  <span class="check">□</span> I can identify network &amp; broadcast for any /XX
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="table-wrap">
+        <table class="refined">
+          <tr><th>CIDR</th><th>Hosts</th><th>Real-world meaning</th></tr>
+          <tr><td>/32</td><td>1</td><td>A single host. Firewall rule for one IP.</td></tr>
+          <tr><td>/30</td><td>2</td><td>Point-to-point router link.</td></tr>
+          <tr><td>/24</td><td>254</td><td><strong>Memorize this one.</strong> Home / office LAN.</td></tr>
+          <tr><td>/16</td><td>65,534</td><td>Big corp segment. <code class="inline">10.0.0.0/16</code>.</td></tr>
+          <tr><td>/8</td><td>16M</td><td>Entire RFC1918 block. <code class="inline">10.0.0.0/8</code>.</td></tr>
+        </table>
+      </div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">sipcalc — practice</span></div>
+<pre><span class="cmd">sudo apt install sipcalc -y</span>
+<span class="cmd">sipcalc 192.168.1.0/26</span>
+Network address      - 192.168.1.0
+Broadcast address    - 192.168.1.63
+Usable range         - <span class="ok">192.168.1.1 — 192.168.1.62</span>
+Addresses in network - 64</pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=03</span></span>
+"<span class="info">Drill me on subnetting. Give me 10 random CIDR ranges
+(mix of /24, /25, /26, /27, /28) and I'll tell you:
+network address, broadcast, usable range, host count.
+No calculator. Don't tell me answers till I commit.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 04 -->
+    <div class="day">
+      <div class="day-num">Day 04</div>
+      <h3>ARP — the layer-2 <em>truth.</em></h3>
+      <p class="day-lede">Before any packet leaves your machine, ARP asks: "who has this IP?" — and trusts whoever answers first.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-04-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-04.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> Layer 2 vs Layer 3 — MAC addresses vs IP addresses
+  <span class="bullet">•</span> Why ARP exists: bridging IP (L3) to MAC (L2)
+  <span class="bullet">•</span> ARP request (broadcast) vs ARP reply (unicast)
+  <span class="bullet">•</span> The ARP cache — and why it's a HUGE security weakness
+  <span class="bullet">•</span> Gratuitous ARP &amp; ARP poisoning preview
+
+<span class="sect-title">RESOURCES   (≈ 40 min)</span>
+  <span class="bullet">•</span> Practical Networking — "ARP Explained" (YouTube, 8m)
+  <span class="bullet">•</span> Hak5 — "ARP Spoofing Explained" (10m, watch concept only)
+  <span class="bullet">•</span> Read: <span class="url">https://wiki.wireshark.org/AddressResolutionProtocol</span>
+
+<span class="sect-title">VOCAB</span>
+  MAC address   broadcast (ff:ff:ff:ff:ff:ff)   ARP cache
+  gratuitous ARP   ARP poisoning   ip neigh
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I know why my laptop can't send a packet without ARP first
+  <span class="check">□</span> I can explain why ARP has no authentication
+  <span class="check">□</span> I can predict what's in my ARP cache before checking
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">arp in motion</span></div>
+<pre><span class="cmd">ip neigh flush all</span>
+<span class="com">clear ARP cache</span>
+
+<span class="cmd">sudo tcpdump -i eth0 arp -nn &amp;</span>
+<span class="cmd">ping -c 1 192.168.1.1</span>
+
+ARP, Request who-has <span class="hi">192.168.1.1</span> tell 192.168.1.42
+ARP, Reply <span class="hi">192.168.1.1</span> is-at <span class="ok">d4:6e:0e:aa:bb:cc</span></pre>
+      </div>
+      <div class="callout warn">
+        <div class="callout-label">Why this matters</div>
+        <div class="callout-body">ARP has zero authentication. Anyone on your LAN can claim <strong>they're</strong> the gateway. That's how every MITM attack starts. We weaponize this on Day 16.</div>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=04</span></span>
+"<span class="info">Walk me through flushing my ARP cache, sniffing ARP
+with tcpdump, then watching it repopulate. Quiz me on
+my own output — who's in my cache and why?</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 05 -->
+    <div class="day">
+      <div class="day-num">Day 05</div>
+      <h3>DNS — every hack starts <em>here.</em></h3>
+      <p class="day-lede">Master <code class="inline">dig</code>. Know your record types. The right query against the right nameserver wins a whole engagement.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-05-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-05.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> The DNS hierarchy — root → TLD → authoritative
+  <span class="bullet">•</span> Recursive vs iterative queries
+  <span class="bullet">•</span> Record types: A, AAAA, MX, TXT, NS, CNAME, SOA, PTR
+  <span class="bullet">•</span> Zone transfers (AXFR) — and why they're dangerous
+  <span class="bullet">•</span> DNS for recon: subdomain enumeration
+
+<span class="sect-title">RESOURCES   (≈ 55 min)</span>
+  <span class="bullet">•</span> Julia Evans — "How DNS Works" zine (free, wizardzines.com)
+  <span class="bullet">•</span> Computerphile — "DNS Explained" (YouTube, 11m)
+  <span class="bullet">•</span> NahamSec — "Subdomain Enumeration" (12m, pentester view)
+  <span class="bullet">•</span> Cloudflare Learning: "What is DNS?" article
+
+<span class="sect-title">VOCAB</span>
+  recursive resolver   authoritative server   TTL   AXFR
+  A   AAAA   MX   TXT   NS   CNAME   SOA   PTR
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can name 7 DNS record types &amp; what each is for
+  <span class="check">□</span> I know the difference between 8.8.8.8 &amp; an authoritative NS
+  <span class="check">□</span> I can explain why TXT records often leak company info
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">dig — the only DNS tool you need</span></div>
+<pre><span class="cmd">dig +short google.com</span>
+<span class="ok">142.250.183.110</span>
+
+<span class="cmd">dig google.com MX +short</span>
+10 smtp.google.com.        <span class="com">← mail servers</span>
+
+<span class="cmd">dig google.com TXT +short</span>
+"v=spf1 include:_spf.google.com ~all"
+
+<span class="cmd">dig @8.8.8.8 svpfarms.in ANY</span>
+<span class="com">query a specific resolver</span></pre>
+      </div>
+      <div class="callout lab">
+        <div class="callout-label">Mini-lab — Recon a real domain</div>
+        <div class="callout-body">Pick any company. Run <code class="inline">dig</code> for A / MX / TXT / NS. Then <code class="inline">subfinder -d target.com</code>. Watch dozens of subdomains pour out. <strong>Every external pentest starts here.</strong></div>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=05</span></span>
+"<span class="info">Pick a real Indian company domain (not too big).
+Walk me through full DNS recon: A, MX, TXT, NS records,
+then subfinder + httpx. Explain what each finding
+means for an attacker and where to look next.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 06 -->
+    <div class="day">
+      <div class="day-num">Day 06</div>
+      <h3>Ports a pentester actually <em>cares</em> about.</h3>
+      <p class="day-lede">Skip the textbook list of 65,535. These fifteen carry 90% of the action.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-06-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-06.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> Port numbers — well-known (0-1023) vs registered vs ephemeral
+  <span class="bullet">•</span> Sockets = IP + port + protocol
+  <span class="bullet">•</span> Listening vs established connections
+  <span class="bullet">•</span> Service-to-port mapping (/etc/services)
+  <span class="bullet">•</span> Why every open port is an attack surface
+
+<span class="sect-title">RESOURCES   (≈ 40 min)</span>
+  <span class="bullet">•</span> Professor Messer — "Common Network Ports" (Network+, 10m)
+  <span class="bullet">•</span> HackerSploit — "Top 10 Ports to Know" (15m)
+  <span class="bullet">•</span> Read: SANS "Pentester's Quick Port List" cheatsheet
+  <span class="bullet">•</span> Memorize: top 15 ports table (in practical block below)
+
+<span class="sect-title">VOCAB</span>
+  socket   listening   established   ESTAB   LISTEN
+  well-known   ephemeral   service banner
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can recite top 15 ports &amp; their services from memory
+  <span class="check">□</span> I know which ports = juicy auth (SSH/SMB/RDP/WinRM)
+  <span class="check">□</span> I can read </span><span class="hi">ss -tulnp</span><span class="info"> output without help
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="table-wrap">
+        <table class="refined">
+          <tr><th>Port</th><th>Service</th><th>Why it matters</th></tr>
+          <tr><td>21</td><td>FTP</td><td>Anonymous logins, cleartext creds</td></tr>
+          <tr><td>22</td><td>SSH</td><td>Brute-force, weak keys</td></tr>
+          <tr><td>23</td><td>Telnet</td><td>Cleartext. If it's open, you've won.</td></tr>
+          <tr><td>25 / 587</td><td>SMTP</td><td>Open relay, user enum via VRFY</td></tr>
+          <tr><td>53</td><td>DNS</td><td>Zone transfers, tunneling</td></tr>
+          <tr><td>80 / 443</td><td>HTTP/S</td><td>The biggest attack surface in the world</td></tr>
+          <tr><td>139 / 445</td><td>SMB</td><td>EternalBlue, null sessions, shares</td></tr>
+          <tr><td>389 / 636</td><td>LDAP/S</td><td>AD enumeration goldmine</td></tr>
+          <tr><td>3306</td><td>MySQL</td><td>Weak passwords everywhere</td></tr>
+          <tr><td>3389</td><td>RDP</td><td>BlueKeep, brute-force</td></tr>
+          <tr><td>5985 / 5986</td><td>WinRM</td><td>Lateral movement in AD</td></tr>
+          <tr><td>6379</td><td>Redis</td><td>Unauth → RCE</td></tr>
+          <tr><td>8080 / 8443</td><td>Mgmt</td><td>Tomcat, Jenkins, exposed admin panels</td></tr>
+        </table>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=06</span></span>
+"<span class="info">Flashcard me on the top 15 pentester ports. Random
+order. For each: I'll say the service + one attack
+vector. Tell me what I'm missing or wrong.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 07 -->
+    <div class="day">
+      <div class="day-num">Day 07</div>
+      <h3>Capstone — trace a packet, <em>end to end.</em></h3>
+      <p class="day-lede">Type <code class="inline">https://github.com</code>. Capture in Wireshark. Identify every protocol that fires, in order.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-07-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-07.md</span>
+<span class="sect-title">CORE CONCEPTS  (synthesis day)</span>
+  <span class="bullet">•</span> Layer interactions: DNS → ARP → TCP → TLS → HTTP
+  <span class="bullet">•</span> TLS handshake basics: Client Hello, Server Hello, certs
+  <span class="bullet">•</span> HTTP vs HTTPS — what changes on the wire
+  <span class="bullet">•</span> Why this whole chain happens in &lt;200ms
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> Practical Networking — "Day in the Life of a Packet" (15m)
+  <span class="bullet">•</span> Cloudflare — "How HTTPS Works" comic (free site)
+  <span class="bullet">•</span> Robert Heaton — "How does HTTPS actually work?" article
+  <span class="bullet">•</span> Re-watch any Wireshark video from Day 02 if rusty
+
+<span class="sect-title">VOCAB</span>
+  TLS 1.3   cipher suite   Client Hello   SNI
+  certificate chain   forward secrecy
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can narrate everything that happens when I hit Enter
+  <span class="check">□</span> I can find Client Hello / Server Hello in my own capture
+  <span class="check">□</span> I'm ready to move from "watching" to "scanning"
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="flow">
+        <div class="flow-title">The chain</div>
+        <ol>
+          <li><strong>DNS</strong> — laptop asks <code>8.8.8.8</code>: "what's github.com?" → gets <code>140.82.114.3</code>.</li>
+          <li><strong>ARP</strong> — laptop needs gateway MAC: "who has 192.168.1.1?"</li>
+          <li><strong>TCP SYN</strong> to <code>140.82.114.3:443</code>, via gateway.</li>
+          <li><strong>TLS handshake</strong> — Client Hello → Server Hello → cert exchange → keys.</li>
+          <li><strong>HTTP/2</strong> request, encrypted inside TLS.</li>
+          <li>Server responds. Page renders. Done.</li>
+        </ol>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=07</span></span>
+"<span class="info">Phase 1 capstone. I captured </span><span class="hi">https://github.com</span><span class="info">
+in Wireshark. Grade my packet-by-packet narration —
+I'll list what I see, you tell me what I missed or
+got wrong. Then green-light me for Phase 2.</span>"</pre>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ============== PHASE 2 ============== -->
+  <div class="section-content" id="section-phase-2">
+  <div class="phase-2">
+    <div class="phase-cover">
+      <div class="phase-marker">Phase Two</div>
+      <h2>Map the <em>territory.</em></h2>
+      <div class="days">Days 08 — 14</div>
+      <p class="intent">Given an IP range — find every host, every open port, every service version, every juicy banner. This is sixty percent of every real engagement.</p>
+    </div>
+
+    <!-- DAY 08 -->
+    <div class="day">
+      <div class="day-num">Day 08</div>
+      <h3>Host discovery, three ways.</h3>
+      <p class="day-lede">Find what's alive on a subnet before you waste a single scan packet on dead air.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-08-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-08.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> ICMP echo (ping) — and why firewalls block it
+  <span class="bullet">•</span> ARP scan: why it's gold on a LAN, useless across WAN
+  <span class="bullet">•</span> TCP SYN ping — discovery via half-open connections
+  <span class="bullet">•</span> When to use </span><span class="hi">-Pn</span><span class="info"> (assume up, skip discovery)
+  <span class="bullet">•</span> Nmap's mental model: discovery → scan → script → report
+
+<span class="sect-title">RESOURCES   (≈ 50 min)</span>
+  <span class="bullet">•</span> HackerSploit — "Nmap for Beginners" (YouTube, 20m)
+  <span class="bullet">•</span> Read: nmap.org/book/man-host-discovery.html (skim)
+  <span class="bullet">•</span> Watch: IppSec — first 10 min of any easy HTB walkthrough
+
+<span class="sect-title">VOCAB</span>
+  ICMP   ping sweep   ARP scan   -Pn   -sn   -PR   -PS
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I know when ping fails &amp; what to switch to
+  <span class="check">□</span> I can choose between -sn, -PR, -Pn for a given target
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">nmap — host discovery</span></div>
+<pre><span class="cmd">sudo nmap -sn 192.168.1.0/24</span>
+<span class="com">ping sweep — fast, finds ICMP/ARP responders</span>
+Nmap scan report for <span class="ok">192.168.1.1</span>
+Nmap scan report for <span class="ok">192.168.1.42</span>
+<span class="hi">3 hosts up</span> out of 256
+
+<span class="cmd">sudo nmap -PR 192.168.1.0/24</span>
+<span class="com">ARP scan — most reliable on a LAN</span>
+
+<span class="cmd">sudo nmap -Pn -PS22,80,443 10.10.10.5</span>
+<span class="com">TCP SYN ping — for firewalled targets that drop ICMP</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=08</span></span>
+"<span class="info">Walk me through host discovery on my own LAN.
+I'll run -sn, -PR, -Pn and paste outputs. Explain
+the differences I see and which is best for what.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 09 -->
+    <div class="day">
+      <div class="day-num">Day 09</div>
+      <h3>Port scans worth keeping.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-09-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-09.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> SYN scan (-sS) vs Connect scan (-sT) — what's "stealth"?
+  <span class="bullet">•</span> UDP scanning &amp; why it's slow + unreliable
+  <span class="bullet">•</span> Service version detection (-sV)
+  <span class="bullet">•</span> Default script scan (-sC)
+  <span class="bullet">•</span> Timing templates: -T0 (paranoid) to -T5 (insane)
+  <span class="bullet">•</span> Output formats: -oN -oX -oG -oA
+
+<span class="sect-title">RESOURCES   (≈ 50 min)</span>
+  <span class="bullet">•</span> HackerSploit — "Nmap Scan Types Deep Dive" (25m)
+  <span class="bullet">•</span> Read: nmap.org/book/man-port-scanning-techniques.html
+  <span class="bullet">•</span> Watch: TCM Security — "Nmap Cheat Sheet" video (15m)
+
+<span class="sect-title">VOCAB</span>
+  half-open scan   SYN/RST   --min-rate   -p-   -sV   -sC
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can explain WHY -sS is stealthier than -sT
+  <span class="check">□</span> I know -sCV -p- is "the standard first scan"
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">the four scans you'll use forever</span></div>
+<pre><span class="cmd">sudo nmap -sS -T4 -p- 10.10.10.5</span>
+<span class="com">SYN stealth, all 65535 ports — root required</span>
+
+<span class="cmd">sudo nmap -sU --top-ports 50 10.10.10.5</span>
+<span class="com">UDP — SLOW. Always limit to top ports.</span>
+
+<span class="cmd">nmap -sV -sC -p 22,80,443 10.10.10.5</span>
+<span class="com">versions + default scripts (the gold standard)</span>
+
+PORT    STATE  SERVICE  VERSION
+22/tcp  open   ssh      <span class="hi">OpenSSH 7.6p1 Ubuntu 4ubuntu0.3</span>
+80/tcp  open   http     <span class="hi">Apache httpd 2.4.29</span></pre>
+      </div>
+      <div class="callout tip">
+        <div class="callout-label">The first scan, always</div>
+        <div class="callout-body"><code class="inline">sudo nmap -sCV -p- --min-rate 5000 -oA scans/initial &lt;target&gt;</code><br>Scripts + versions + every port + fast + saved in 3 formats. <strong>Memorize it.</strong></div>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=09</span></span>
+"<span class="info">I'll set up a vulnerable VM (Metasploitable2 or similar).
+Walk me through running all four scan types against it
+and decoding the output. Then have me pick CVE candidates.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 10 -->
+    <div class="day">
+      <div class="day-num">Day 10</div>
+      <h3>NSE — Nmap's <em>hidden weapon.</em></h3>
+      <p class="day-lede">Six hundred scripts live in <code class="inline">/usr/share/nmap/scripts/</code>. Most pentesters know about six of them.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-10-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-10.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> What NSE is — Lua scripts ship with Nmap
+  <span class="bullet">•</span> Script categories: auth, brute, default, discovery,
+    exploit, intrusive, vuln, safe
+  <span class="bullet">•</span> Selecting scripts: --script=name vs category vs wildcards
+  <span class="bullet">•</span> When --script vuln is appropriate (NOT in prod!)
+  <span class="bullet">•</span> Reading NSE output
+
+<span class="sect-title">RESOURCES   (≈ 40 min)</span>
+  <span class="bullet">•</span> Hacker Sploit — "Nmap NSE Scripts" (YouTube, 18m)
+  <span class="bullet">•</span> Browse: nmap.org/nsedoc/categories/
+  <span class="bullet">•</span> Read: SANS NSE primer (free PDF)
+
+<span class="sect-title">VOCAB</span>
+  NSE   Lua   --script   category   intrusive
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can list 5 useful NSE script categories
+  <span class="check">□</span> I know which scripts NOT to run on production
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">nmap scripting engine</span></div>
+<pre><span class="cmd">ls /usr/share/nmap/scripts | grep smb | head</span>
+smb-enum-shares.nse
+<span class="hi">smb-vuln-ms17-010.nse</span>      <span class="com">← EternalBlue check</span>
+
+<span class="cmd">nmap --script smb-vuln-* -p 445 10.10.10.40</span>
+| smb-vuln-ms17-010:
+|   VULNERABLE:
+|   <span class="bad">Remote Code Execution in Microsoft SMBv1</span>
+|     CVE: CVE-2017-0143
+
+<span class="cmd">nmap --script http-enum -p 80 10.10.10.5</span>
+|_/admin/: Possible admin folder
+|_/backup.sql: SQL backup file</pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=10</span></span>
+"<span class="info">Teach me to pick NSE scripts strategically. Give me
+a fake target (Apache + MySQL + SMB box) — I'll tell
+you which NSE categories &amp; scripts to run and why.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 11 -->
+    <div class="day">
+      <div class="day-num">Day 11</div>
+      <h3>Banner grabbing — <em>old-school recon.</em></h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-11-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-11.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> What a service banner is &amp; why services announce themselves
+  <span class="bullet">•</span> netcat (nc) — the "TCP/IP swiss army knife"
+  <span class="bullet">•</span> curl -I for HTTP headers
+  <span class="bullet">•</span> Mapping banner → version → CVE
+  <span class="bullet">•</span> searchsploit (offline exploit-db)
+
+<span class="sect-title">RESOURCES   (≈ 40 min)</span>
+  <span class="bullet">•</span> NahamSec — "Manual Recon Techniques" (15m)
+  <span class="bullet">•</span> Read: nc(1) man page — just the SYNOPSIS &amp; first 3 examples
+  <span class="bullet">•</span> Browse: <span class="url">https://www.exploit-db.com</span>
+  <span class="bullet">•</span> Bonus: HackTricks book — pentestbook.com (network section)
+
+<span class="sect-title">VOCAB</span>
+  banner   service fingerprint   searchsploit   CVE   exploit-db
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can grab a banner from any TCP service with nc
+  <span class="check">□</span> I can map a banner version to a known CVE
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">manual fingerprinting</span></div>
+<pre><span class="cmd">nc -nv 10.10.10.5 22</span>
+<span class="hi">SSH-2.0-OpenSSH_7.6p1 Ubuntu-4ubuntu0.3</span>
+
+<span class="cmd">curl -sI http://10.10.10.5</span>
+HTTP/1.1 200 OK
+Server: <span class="hi">Apache/2.4.29 (Ubuntu)</span>
+X-Powered-By: <span class="hi">PHP/7.2.24</span>
+
+<span class="cmd">nc -nv 10.10.10.5 25</span>
+220 mail.corp ESMTP <span class="hi">Postfix (Ubuntu)</span></pre>
+      </div>
+      <p>Versions → CVEs. <code class="inline">searchsploit apache 2.4.29</code> tells you what's exploitable in seconds.</p>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=11</span></span>
+"<span class="info">Give me 5 fake banners. For each I'll: identify the
+service, name the version, suggest searchsploit query,
+guess at likely CVEs. Grade me harshly.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 12 -->
+    <div class="day">
+      <div class="day-num">Day 12</div>
+      <h3>External attack surface.</h3>
+      <p class="day-lede">Subdomains are doors nobody remembers locking. Map them before anyone else does.</p>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-12-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-12.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> Passive vs active subdomain enumeration
+  <span class="bullet">•</span> Certificate transparency logs (crt.sh)
+  <span class="bullet">•</span> Tool chains: subfinder → httpx → nuclei
+  <span class="bullet">•</span> What "attack surface" actually means
+  <span class="bullet">•</span> Bug bounty vs pentest scope discipline
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> NahamSec — "Recon Methodology 2024" (YouTube, 30m)
+  <span class="bullet">•</span> Jason Haddix — "The Bug Hunter's Methodology v5" talk
+  <span class="bullet">•</span> ProjectDiscovery YouTube — subfinder + httpx + nuclei tutorials
+  <span class="bullet">•</span> Browse: <span class="url">https://crt.sh</span> with any domain
+
+<span class="sect-title">VOCAB</span>
+  subdomain   wildcard DNS   CT log   passive recon
+  subfinder   httpx   nuclei   amass
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can name 4 sources subfinder pulls from
+  <span class="check">□</span> I understand why crt.sh leaks subdomains
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">subfinder → httpx → nuclei</span></div>
+<pre><span class="cmd">subfinder -d target.com -silent</span>
+www.target.com
+api.target.com
+<span class="hi">dev.target.com</span>            <span class="com">← interesting</span>
+<span class="hi">vpn.target.com</span>            <span class="com">← very interesting</span>
+
+<span class="cmd">subfinder -d target.com | httpx -title -tech-detect</span>
+https://dev.target.com   [<span class="hi">Apache, PHP 5.6</span>]   [Login]
+
+<span class="cmd">dig axfr @ns1.target.com target.com</span>
+<span class="com">zone transfer — sometimes still works!</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=12</span></span>
+"<span class="info">Help me run external recon on a real bug bounty
+target (HackerOne public program). Walk through scope
+checking → subfinder → httpx → nuclei. Stay legal.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 13 -->
+    <div class="day">
+      <div class="day-num">Day 13</div>
+      <h3>Web content discovery.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-13-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-13.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> Directory / file fuzzing — the "FUZZ" placeholder
+  <span class="bullet">•</span> Wordlists: SecLists, dirbuster, raft
+  <span class="bullet">•</span> Status codes: 200, 301/302, 403, 404
+  <span class="bullet">•</span> Tech fingerprinting (whatweb, Wappalyzer)
+  <span class="bullet">•</span> CMS-specific tools: wpscan, joomscan
+
+<span class="sect-title">RESOURCES   (≈ 50 min)</span>
+  <span class="bullet">•</span> InsiderPhD — "How to Get Started in Bug Bounties" (45m)
+  <span class="bullet">•</span> PortSwigger Web Security Academy — "Information Disclosure"
+  <span class="bullet">•</span> ffuf docs: <span class="url">https://github.com/ffuf/ffuf</span>
+  <span class="bullet">•</span> Clone: <span class="url">https://github.com/danielmiessler/SecLists</span>
+
+<span class="sect-title">VOCAB</span>
+  fuzzing   wordlist   ffuf   gobuster   whatweb
+  status code   robots.txt   .git exposure
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I know which wordlist to pick for which target type
+  <span class="check">□</span> I can interpret a 403 vs 404 from a fuzzer
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">finding what isn't linked</span></div>
+<pre><span class="cmd">ffuf -u http://10.10.10.5/FUZZ -w common.txt -mc 200,301,403</span>
+admin           [Status: <span class="hi">301</span>, Size: 312]
+backup          [Status: <span class="hi">200</span>, Size: 1024]
+config.php.bak  [Status: <span class="hi">200</span>, Size: 845]
+.git            [Status: <span class="bad">200</span>]    <span class="com">← jackpot</span>
+
+<span class="cmd">whatweb http://10.10.10.5</span>
+Apache[2.4.29], <span class="hi">WordPress[5.2.1]</span>, PHP[7.2.24]
+
+<span class="cmd">wpscan --url http://10.10.10.5 --enumerate u,p</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=13</span></span>
+"<span class="info">Help me set up ffuf with the right SecLists wordlist
+for a WordPress target. I'll fuzz, paste results,
+and you'll teach me what each finding means.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 14 -->
+    <div class="day">
+      <div class="day-num">Day 14</div>
+      <h3>Capstone — your first <em>recon report.</em></h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-14-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-14.md</span>
+<span class="sect-title">CORE CONCEPTS  (synthesis day)</span>
+  <span class="bullet">•</span> Recon methodology — pinning down a consistent flow
+  <span class="bullet">•</span> Note-taking discipline (CherryTree, Obsidian, plain MD)
+  <span class="bullet">•</span> What a pentest report actually contains
+  <span class="bullet">•</span> Scope, methodology, findings, evidence, remediation
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> TCM Security — "Practical Ethical Hacking" recon section (free)
+  <span class="bullet">•</span> Read 2 sample reports: <span class="url">https://pentestreports.com</span>
+  <span class="bullet">•</span> HackTheBox Academy — "Documentation &amp; Reporting" module
+
+<span class="sect-title">VOCAB</span>
+  scope   methodology   finding   evidence   remediation
+  executive summary   CVSS   severity
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can structure a recon report from memory
+  <span class="check">□</span> I have a notes system I'll actually use
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="callout lab">
+        <div class="callout-label">Target: HTB Starting Point</div>
+        <div class="callout-body">Produce a markdown report with: host discovery, full port scan with versions, every banner detected, all web paths found, and three CVE candidates with searchsploit IDs. <strong>This is what a real pentest deliverable looks like.</strong></div>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=14</span></span>
+"<span class="info">I finished my first recon against an HTB box.
+I'll paste my markdown report. Critique it like a
+senior pentester: structure, evidence, omissions,
+sloppy writing. Then green-light me for Phase 3.</span>"</pre>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ============== PHASE 3 ============== -->
+  <div class="section-content" id="section-phase-3">
+  <div class="phase-3">
+    <div class="phase-cover">
+      <div class="phase-marker">Phase Three</div>
+      <h2>Touch the <em>wire.</em></h2>
+      <div class="days">Days 15 — 22</div>
+      <p class="intent">Sniff, spoof, intercept, hijack — but only on hardware you own. Everything from here on lives in a lab.</p>
+    </div>
+
+    <!-- DAY 15 -->
+    <div class="day">
+      <div class="day-num">Day 15</div>
+      <h3>tcpdump — Wireshark for the <em>terminal.</em></h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-15-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-15.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> BPF (Berkeley Packet Filter) syntax basics
+  <span class="bullet">•</span> Capture filters vs display filters
+  <span class="bullet">•</span> Writing pcap files &amp; reading them later
+  <span class="bullet">•</span> When to use tcpdump vs Wireshark (headless servers!)
+  <span class="bullet">•</span> Common filter patterns: host, port, net, src, dst
+
+<span class="sect-title">RESOURCES   (≈ 40 min)</span>
+  <span class="bullet">•</span> Daniel Miessler — "tcpdump Examples" article (read it twice)
+  <span class="bullet">•</span> HackerSploit — "tcpdump Tutorial" (YouTube, 18m)
+  <span class="bullet">•</span> Read: man tcpdump (just the EXAMPLES section)
+
+<span class="sect-title">VOCAB</span>
+  BPF   pcap   -i   -w   -r   -A   -X   primitives
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can write a BPF filter for "HTTP to specific host"
+  <span class="check">□</span> I can save to pcap and reopen in Wireshark
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">filters that matter</span></div>
+<pre><span class="cmd">sudo tcpdump -i eth0 -nn 'port 80'</span>
+<span class="com">all HTTP, no name resolution</span>
+
+<span class="cmd">sudo tcpdump -i eth0 -A 'port 80 and host 10.10.10.5'</span>
+<span class="com">-A: ASCII payload — read HTTP requests live</span>
+
+<span class="cmd">sudo tcpdump -i eth0 -w cap.pcap 'host 10.10.10.5'</span>
+<span class="com">save to file, open in Wireshark later</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=15</span></span>
+"<span class="info">Quiz me with 10 BPF filter scenarios. I'll write the
+tcpdump command for each — capture HTTP, isolate SYN
+flags, watch DNS to a specific resolver, etc.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 16 -->
+    <div class="day">
+      <div class="day-num">Day 16</div>
+      <h3>ARP spoofing — MITM on your <em>own</em> LAN.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-16-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-16.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> What MITM means &amp; the threat model
+  <span class="bullet">•</span> ARP poisoning mechanics — race conditions on replies
+  <span class="bullet">•</span> IP forwarding (why victim must still reach internet)
+  <span class="bullet">•</span> SSL stripping &amp; HSTS (why HTTPS mostly defeats this now)
+  <span class="bullet">•</span> Legal boundaries (IT Act §43, §66)
+
+<span class="sect-title">RESOURCES   (≈ 50 min)</span>
+  <span class="bullet">•</span> Hak5 — "ARP Spoofing Explained" (12m)
+  <span class="bullet">•</span> LiveOverflow — older MITM video (concept only)
+  <span class="bullet">•</span> Read: dsniff / arpspoof docs
+  <span class="bullet">•</span> Skim: HSTS &amp; cert pinning concepts on MDN
+
+<span class="sect-title">VOCAB</span>
+  MITM   ARP poisoning   ip_forward   dsniff   arpspoof
+  HSTS   SSL strip   gateway impersonation
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can explain why HTTPS mostly stops cred theft via MITM
+  <span class="check">□</span> I know it's illegal outside my own lab — FULL STOP
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="callout warn">
+        <div class="callout-label">Lab only</div>
+        <div class="callout-body">Two VMs on the same internal network. Spoof your own gateway. <strong>Not the office WiFi. Not the café.</strong> Under India's IT Act §43 and §66, unauthorized network interception is a criminal offense.</div>
+      </div>
+      <div class="diagram">
+        <div class="diagram-label">What you're doing</div>
+<pre>      BEFORE                              AFTER
+  Victim ─→ Router                    Victim ─→ <span style="color:#f87171">Attacker</span> ─→ Router</pre>
+      </div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">arpspoof + sniff</span></div>
+<pre><span class="cmd">echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward</span>
+<span class="cmd">sudo arpspoof -i eth0 -t 192.168.56.10 192.168.56.1</span>
+<span class="cmd">sudo tcpdump -i eth0 -A 'host 192.168.56.10 and port 80'</span>
+GET /login HTTP/1.1
+<span class="bad">username=admin&amp;password=hunter2</span>     <span class="com">← captured</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=16</span></span>
+"<span class="info">Walk me through setting up a 2-VM internal network
+in VirtualBox. Then guide me through ARP spoofing
+between MY OWN VMs. I'll paste each step's output.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 17 -->
+    <div class="day">
+      <div class="day-num">Day 17</div>
+      <h3>DNS spoofing with <em>bettercap.</em></h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-17-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-17.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> DNS spoofing as a post-MITM capability
+  <span class="bullet">•</span> bettercap modules &amp; the caplet system
+  <span class="bullet">•</span> Why DoH (DNS-over-HTTPS) breaks this attack
+  <span class="bullet">•</span> Combining ARP + DNS spoof for credential phishing
+
+<span class="sect-title">RESOURCES   (≈ 40 min)</span>
+  <span class="bullet">•</span> NetworkChuck — "bettercap MITM" (15m)
+  <span class="bullet">•</span> bettercap docs: <span class="url">https://www.bettercap.org</span>
+  <span class="bullet">•</span> Read: Cloudflare blog on DoH
+
+<span class="sect-title">VOCAB</span>
+  caplet   spoof.domains   DoH (DNS over HTTPS)
+  rogue responder   captive portal
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can list 5 bettercap modules from memory
+  <span class="check">□</span> I know what defends against DNS spoof (DoH, DNSSEC)
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">bettercap — modern MITM</span></div>
+<pre><span class="cmd">sudo bettercap -iface eth0</span>
+» <span class="mag">net.probe on</span>
+» <span class="mag">set arp.spoof.targets 192.168.56.10</span>
+» <span class="mag">arp.spoof on</span>
+» <span class="mag">net.sniff on</span>
+» <span class="mag">set dns.spoof.domains target.com</span>
+» <span class="mag">set dns.spoof.address 192.168.56.5</span>
+» <span class="mag">dns.spoof on</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=17</span></span>
+"<span class="info">Walk me through bettercap on my 2-VM lab. Goal:
+hijack DNS for a fake domain (say </span><span class="hi">vuln.lab</span><span class="info">) and
+serve a credential-capture page from my Kali. All
+between machines I own.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 18 -->
+    <div class="day">
+      <div class="day-num">Day 18</div>
+      <h3>Burp Suite — your <em>most-used</em> tool.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-18-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-18.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> HTTP proxy fundamentals — how a MITM proxy works
+  <span class="bullet">•</span> Burp's CA cert &amp; why you must trust it
+  <span class="bullet">•</span> Burp panels: Proxy, Repeater, Intruder, Decoder
+  <span class="bullet">•</span> Scope, target tree, site map
+  <span class="bullet">•</span> Why Burp Community is plenty for learning
+
+<span class="sect-title">RESOURCES   (≈ 90 min — invest here)</span>
+  <span class="bullet">•</span> PortSwigger Web Security Academy — "Getting Started" (FREE)
+  <span class="bullet">•</span> Rana Khalil YouTube — entire OWASP Top 10 series
+  <span class="bullet">•</span> InsiderPhD — "Burp Suite Crash Course"
+  <span class="bullet">•</span> Read: PortSwigger Burp docs (intercept, repeater, intruder)
+
+<span class="sect-title">VOCAB</span>
+  proxy   intercept   Repeater   Intruder   Decoder
+  target tree   scope   CA cert   site map
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I have Firefox proxying through Burp + cert installed
+  <span class="check">□</span> I can send a request to Repeater &amp; modify it
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="flow">
+        <div class="flow-title">Setup</div>
+        <ol>
+          <li>Launch Burp Community → Proxy → Intercept ON.</li>
+          <li>Configure Firefox proxy: <code>127.0.0.1:8080</code>.</li>
+          <li>Visit <code>http://burp</code> → import CA cert to Firefox trust store.</li>
+          <li>Browse target. Every request lands in Burp. <strong>Right-click → Send to Repeater</strong>.</li>
+          <li>Modify params in Repeater → Send → watch responses. This is how you find IDOR, auth bypass, injection.</li>
+        </ol>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=18</span></span>
+"<span class="info">Walk me through my first Burp session on PortSwigger's
+free Web Security Academy lab. Specifically the
+"Unprotected admin functionality" lab. Teach me to
+intercept, modify, replay — step by step.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 19 -->
+    <div class="day">
+      <div class="day-num">Day 19</div>
+      <h3>Hash to password — <em>hashcat</em> &amp; john.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-19-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-19.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> Hashing vs encryption (one-way vs two-way)
+  <span class="bullet">•</span> Common hash families: MD5, SHA-1, SHA-256, NTLM, bcrypt
+  <span class="bullet">•</span> Salts &amp; why they matter
+  <span class="bullet">•</span> Dictionary vs brute force vs rule-based vs mask attacks
+  <span class="bullet">•</span> GPU cracking — why hashcat is so fast
+
+<span class="sect-title">RESOURCES   (≈ 50 min)</span>
+  <span class="bullet">•</span> Computerphile — "Hashing Algorithms and Security" (8m)
+  <span class="bullet">•</span> HackerSploit — "Hashcat Tutorial" (20m)
+  <span class="bullet">•</span> Read: hashcat wiki — "example_hashes" page (bookmark it)
+  <span class="bullet">•</span> Browse: hashes.com (identify any hash)
+
+<span class="sect-title">VOCAB</span>
+  hash mode   salt   rainbow table   rule   mask
+  rockyou.txt   wordlist   GPU acceleration
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can identify common hash formats by sight
+  <span class="check">□</span> I know hashcat -m 0 = MD5, -m 1000 = NTLM
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">cracking</span></div>
+<pre><span class="cmd">hashid '5f4dcc3b5aa765d61d8327deb882cf99'</span>
+[+] MD5
+
+<span class="cmd">hashcat -m 0 hashes.txt rockyou.txt</span>
+<span class="com">-m 0 = MD5  |  -m 1000 = NTLM  |  -m 1800 = sha512crypt</span>
+5f4dcc3b5aa765d61d8327deb882cf99:<span class="ok">password</span>
+Status: <span class="ok">Cracked</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=19</span></span>
+"<span class="info">Give me 5 different hashes (MD5, SHA1, NTLM, bcrypt,
+sha512crypt). I'll identify each, pick the right
+hashcat mode, and craft the right command.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 20 -->
+    <div class="day">
+      <div class="day-num">Day 20</div>
+      <h3>Brute forcing services — hydra.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-20-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-20.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> Online vs offline brute forcing
+  <span class="bullet">•</span> Password spraying vs brute forcing (spray = safer)
+  <span class="bullet">•</span> Account lockout policies &amp; detection
+  <span class="bullet">•</span> Hydra modules: ssh, ftp, http-post-form, smb, rdp
+  <span class="bullet">•</span> When to give up brute-force &amp; look elsewhere
+
+<span class="sect-title">RESOURCES   (≈ 40 min)</span>
+  <span class="bullet">•</span> HackerSploit — "Hydra Tutorial" (15m)
+  <span class="bullet">•</span> TCM Security — "Password Attacks" section of PEH
+  <span class="bullet">•</span> Read: SANS pen test cheat sheet (password attacks page)
+
+<span class="sect-title">VOCAB</span>
+  brute force   password spray   credential stuffing
+  -l   -L   -P   -t   account lockout
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can write a hydra command for an HTTP login form
+  <span class="check">□</span> I know when to NOT brute-force (= lockout risk)
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">hydra</span></div>
+<pre><span class="cmd">hydra -l admin -P rockyou.txt ssh://10.10.10.5</span>
+[22][ssh] login: <span class="ok">admin</span>  password: <span class="ok">qwerty123</span>
+
+<span class="cmd">hydra -L users.txt -P pass.txt ftp://10.10.10.5 -t 4</span>
+<span class="com">-t 4 = low threads (avoid lockout)</span>
+
+<span class="cmd">hydra -l admin -P pass.txt 10.10.10.5 http-post-form \
+  "/login:user=^USER^&amp;pass=^PASS^:Invalid"</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=20</span></span>
+"<span class="info">Give me 5 different brute-force scenarios (ssh, ftp,
+http login, smb, rdp). For each I'll write the right
+hydra command. Catch my mistakes.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 21 -->
+    <div class="day">
+      <div class="day-num">Day 21</div>
+      <h3>Pivoting — one box <em>into</em> the next.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-21-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-21.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> Why pivoting exists — flat networks are rare
+  <span class="bullet">•</span> SSH tunneling: -L (local), -R (remote), -D (dynamic SOCKS)
+  <span class="bullet">•</span> proxychains config &amp; SOCKS proxies
+  <span class="bullet">•</span> Chisel as a modern alternative to SSH tunnels
+  <span class="bullet">•</span> Dual-homed hosts (DMZ pattern)
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> 0xdf — "Pivoting techniques" blog post (read it twice)
+  <span class="bullet">•</span> IppSec — search YouTube for "pivoting" in his videos
+  <span class="bullet">•</span> HackTricks — Pivoting section: <span class="url">https://book.hacktricks.xyz</span>
+  <span class="bullet">•</span> Read: man ssh, look for -L -R -D options
+
+<span class="sect-title">VOCAB</span>
+  pivot   dual-homed   DMZ   SOCKS5   proxychains
+  port forward   local/remote/dynamic forwarding
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can explain -L vs -R vs -D in plain English
+  <span class="check">□</span> I can describe a 3-host pivot scenario start to end
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="diagram">
+        <div class="diagram-label">Classic dual-homed pivot</div>
+<pre>   You              DMZ Host             Internal Net
+   Kali ──SSH────▶  10.10.10.5  ───▶  192.168.50.0/24</pre>
+      </div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">SSH tunneling — the swiss army knife</span></div>
+<pre><span class="com"># LOCAL forward: localhost:9999 → pivot → internal:80</span>
+<span class="cmd">ssh -L 9999:192.168.50.20:80 user@10.10.10.5</span>
+
+<span class="com"># DYNAMIC SOCKS: tunnel ALL tools through the pivot</span>
+<span class="cmd">ssh -D 1080 user@10.10.10.5</span>
+<span class="cmd">proxychains nmap -sT -Pn 192.168.50.0/24</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=21</span></span>
+"<span class="info">Help me build a 3-VM pivot lab: Kali → DMZ host →
+internal host (no direct path from Kali). Walk me
+through SSH -D + proxychains to reach the internal
+machine. I'll paste outputs as we go.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 22 -->
+    <div class="day">
+      <div class="day-num">Day 22</div>
+      <h3>Capstone — compromise &amp; <em>pivot.</em></h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-22-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-22.md</span>
+<span class="sect-title">CORE CONCEPTS  (synthesis day)</span>
+  <span class="bullet">•</span> The cyber kill chain — recon, weaponize, deliver,
+    exploit, install, command, action
+  <span class="bullet">•</span> Reverse shells vs bind shells
+  <span class="bullet">•</span> Linux privilege escalation basics (LinPEAS)
+  <span class="bullet">•</span> Credential reuse across hosts
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> Lockheed Martin — Cyber Kill Chain (free PDF)
+  <span class="bullet">•</span> IppSec — any easy HTB box walkthrough (pick one, watch all)
+  <span class="bullet">•</span> g0tmi1k — "Basic Linux Privilege Escalation" (classic blog)
+  <span class="bullet">•</span> GTFOBins: <span class="url">https://gtfobins.github.io</span> (bookmark forever)
+
+<span class="sect-title">VOCAB</span>
+  kill chain   reverse shell   LinPEAS   GTFOBins
+  sudo -l   SUID   credential reuse
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can list the 7 kill chain steps
+  <span class="check">□</span> I know what GTFOBins is for
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="callout lab">
+        <div class="callout-label">Target: HTB easy box</div>
+        <div class="callout-body">Full kill chain: <strong>recon</strong> → vulnerable service → <strong>shell</strong> → enumerate disk → find creds → <strong>SSH tunnel</strong> to an "internal" host. Document with screenshots. This is your portfolio.</div>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=22</span></span>
+"<span class="info">Phase 3 capstone. Pick me an HTB easy retired box
+(or TryHackMe room). Hint me only when stuck. I'll
+narrate every step — recon, shell, loot, pivot.
+Grade like a junior pentester interview.</span>"</pre>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ============== PHASE 4 ============== -->
+  <div class="section-content" id="section-phase-4">
+  <div class="phase-4">
+    <div class="phase-cover">
+      <div class="phase-marker">Phase Four</div>
+      <h2>Go <em>operational.</em></h2>
+      <div class="days">Days 23 — 30</div>
+      <p class="intent">Evasion. Wireless. IPv6. Detection. Reports. The final mile that separates a CTF kid from someone you'd hire.</p>
+    </div>
+
+    <!-- DAY 23 -->
+    <div class="day">
+      <div class="day-num">Day 23</div>
+      <h3>Firewall &amp; IDS <em>evasion.</em></h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-23-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-23.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> Stateful vs stateless firewalls
+  <span class="bullet">•</span> IDS vs IPS vs EDR — what catches what
+  <span class="bullet">•</span> Snort &amp; Suricata signature basics
+  <span class="bullet">•</span> Why "low &amp; slow" actually evades modern detection
+  <span class="bullet">•</span> Fragmentation, decoys, source port spoofing
+
+<span class="sect-title">RESOURCES   (≈ 50 min)</span>
+  <span class="bullet">•</span> Black Hills InfoSec — "Sacred Cash Cow Tipping" talks
+  <span class="bullet">•</span> Read: nmap.org/book/man-bypass-firewalls-ids.html
+  <span class="bullet">•</span> Watch: SANS — "EDR Evasion Basics" talks on YouTube
+
+<span class="sect-title">VOCAB</span>
+  -f (fragment)   -D (decoy)   --source-port   --data-length
+  signature   anomaly detection
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can explain why -T2 evades better than -T4
+  <span class="check">□</span> I know EDR catches most "classic" evasion now
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">going quiet</span></div>
+<pre><span class="cmd">sudo nmap -sS -T2 -f --data-length 25 10.10.10.5</span>
+<span class="cmd">sudo nmap -sS --source-port 53 -e eth0 10.10.10.5</span>
+<span class="cmd">sudo nmap -D RND:10 10.10.10.5</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=23</span></span>
+"<span class="info">Set up a Suricata IDS VM. I'll scan it with various
+nmap evasion options, you tell me which ones tripped
+alerts and which didn't. Build my intuition.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 24 -->
+    <div class="day">
+      <div class="day-num">Day 24</div>
+      <h3>VLAN basics &amp; hopping.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-24-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-24.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> What a VLAN is &amp; why corps segment with them
+  <span class="bullet">•</span> 802.1Q tagging &amp; native VLAN
+  <span class="bullet">•</span> Trunk vs access ports
+  <span class="bullet">•</span> Double-tagging attack mechanics
+  <span class="bullet">•</span> Scapy basics for crafting custom packets
+
+<span class="sect-title">RESOURCES   (≈ 50 min)</span>
+  <span class="bullet">•</span> Practical Networking — "VLANs Explained" (15m)
+  <span class="bullet">•</span> Read: SANS — "VLAN Hopping" white paper
+  <span class="bullet">•</span> scapy docs: <span class="url">https://scapy.readthedocs.io</span>
+  <span class="bullet">•</span> Watch: David Bombal — VLAN videos for fundamentals
+
+<span class="sect-title">VOCAB</span>
+  802.1Q   trunk   access port   native VLAN
+  Dot1Q   double tagging   DTP
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can explain native VLAN's role in the attack
+  <span class="check">□</span> I can craft a Dot1Q packet in scapy from memory
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="diagram">
+        <div class="diagram-label">Double-tagging attack</div>
+<pre>  double-tagged frame: [VLAN 10][VLAN 20][PAYLOAD]
+  switch strips outer (10), forwards on VLAN 20</pre>
+      </div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">scapy — craft your own</span></div>
+<pre><span class="cmd">python3</span>
+&gt;&gt;&gt; from scapy.all import *
+&gt;&gt;&gt; pkt = Ether()/Dot1Q(vlan=10)/Dot1Q(vlan=20)/IP(dst="10.20.0.1")/ICMP()
+&gt;&gt;&gt; sendp(pkt, iface="eth0")</pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=24</span></span>
+"<span class="info">Teach me scapy from scratch. I want to craft a
+double-tagged VLAN frame and explain to you why
+each layer is there. Catch my misconceptions.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 25 -->
+    <div class="day">
+      <div class="day-num">Day 25</div>
+      <h3>Wireless — WPA2 <em>handshake.</em></h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-25-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-25.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> 802.11 frame types: management, control, data
+  <span class="bullet">•</span> WEP → WPA → WPA2 → WPA3 evolution
+  <span class="bullet">•</span> The 4-way handshake (PMK, PTK, GTK)
+  <span class="bullet">•</span> Monitor mode + packet injection (hardware required!)
+  <span class="bullet">•</span> Deauth attacks &amp; PMKID attacks
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> David Bombal — "WiFi Hacking Course" intro episodes
+  <span class="bullet">•</span> Hak5 — Wi-Fi attack demos (concept only)
+  <span class="bullet">•</span> aircrack-ng wiki: <span class="url">https://www.aircrack-ng.org/doku.php</span>
+  <span class="bullet">•</span> Read: Mathy Vanhoef's KRACK paper (skim)
+
+<span class="sect-title">VOCAB</span>
+  monitor mode   injection   BSSID   ESSID   PSK
+  4-way handshake   deauth   PMKID
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I understand WHY WPA2 PSK is brute-forceable offline
+  <span class="check">□</span> I know what hardware I need before buying it
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="callout warn">
+        <div class="callout-label">Hardware required</div>
+        <div class="callout-body">A wifi adapter with <strong>monitor mode + packet injection</strong>. Budget pick: Alfa AWUS036ACH (~₹3,500). Built-in laptop chips usually won't work.</div>
+      </div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">aircrack-ng workflow</span></div>
+<pre><span class="cmd">sudo airmon-ng start wlan0</span>
+<span class="cmd">sudo airodump-ng wlan0mon</span>
+<span class="cmd">sudo airodump-ng -c 6 --bssid AA:BB:CC:11:22:33 -w cap wlan0mon</span>
+<span class="cmd">sudo aireplay-ng -0 5 -a AA:BB:CC:11:22:33 wlan0mon</span>
+<span class="cmd">aircrack-ng -w rockyou.txt cap-01.cap</span>
+KEY FOUND! [ <span class="ok">password123</span> ]</pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=25</span></span>
+"<span class="info">I bought an Alfa adapter. Walk me through the full
+aircrack chain against MY OWN home router. Explain
+each step's purpose and what could go wrong.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 26 -->
+    <div class="day">
+      <div class="day-num">Day 26</div>
+      <h3>IPv6 — the network <em>nobody</em> firewalls.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-26-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-26.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> IPv6 address types: link-local, global, multicast
+  <span class="bullet">•</span> SLAAC (stateless autoconfig) — how Windows auto-IPv6s
+  <span class="bullet">•</span> Neighbor Discovery Protocol (NDP) = IPv6's ARP
+  <span class="bullet">•</span> Why most corp firewalls ignore IPv6
+  <span class="bullet">•</span> mitm6 attack vector for Active Directory
+
+<span class="sect-title">RESOURCES   (≈ 50 min)</span>
+  <span class="bullet">•</span> Practical Networking — "IPv6 Tutorial" series
+  <span class="bullet">•</span> Fox-IT blog — "mitm6 attack" original post
+  <span class="bullet">•</span> Read: APNIC IPv6 primer
+  <span class="bullet">•</span> Watch: Black Hat — "Owning the IPv6 Network" talks
+
+<span class="sect-title">VOCAB</span>
+  link-local (fe80::)   SLAAC   NDP   RA   ff02::1
+  mitm6   DHCPv6   global unicast
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can spot a link-local address by its prefix
+  <span class="check">□</span> I know why corps' "we don't use IPv6" is a lie
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">ipv6 quirks</span></div>
+<pre><span class="cmd">ip -6 a</span>
+inet6 fe80::a00:27ff:fea1:b2c3/64 scope <span class="hi">link</span>
+inet6 2001:db8::42/64 scope <span class="hi">global</span>
+
+<span class="cmd">ping6 -c 1 ff02::1%eth0</span>
+<span class="com">all-nodes multicast — every IPv6 host replies</span>
+64 bytes from fe80::1
+64 bytes from fe80::a00:27ff:fe55:6677</pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=26</span></span>
+"<span class="info">Walk me through IPv6 discovery on my own LAN. Then
+explain mitm6 attack flow at a high level (no actual
+attack — just the theory I need to understand it).</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 27 -->
+    <div class="day">
+      <div class="day-num">Day 27</div>
+      <h3>What the <em>blue team</em> sees.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-27-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-27.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> SIEM basics — Splunk, ELK, Wazuh
+  <span class="bullet">•</span> Where Linux logs live: /var/log/auth.log, syslog, apache
+  <span class="bullet">•</span> Where Windows logs live: Event Viewer, Sysmon
+  <span class="bullet">•</span> Detection patterns: failed auth, recon scans, anomalies
+  <span class="bullet">•</span> MITRE ATT&amp;CK framework basics
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> John Hammond YouTube — blue team videos
+  <span class="bullet">•</span> Browse: <span class="url">https://attack.mitre.org</span>
+  <span class="bullet">•</span> SANS Blue Team primer (free PDFs on sans.org)
+  <span class="bullet">•</span> TryHackMe — "Splunk Basics" room (free)
+
+<span class="sect-title">VOCAB</span>
+  SIEM   Sysmon   Wazuh   ELK   ATT&amp;CK   TTPs
+  IoC   detection   correlation rule
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can name 3 SIEM products
+  <span class="check">□</span> I know what an ATT&amp;CK technique looks like (e.g. T1110)
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">tail the logs while you attack</span></div>
+<pre><span class="cmd">sudo tail -f /var/log/auth.log</span>
+Failed password for invalid user admin from 192.168.56.5
+<span class="bad">PAM 5 more failures; rhost=192.168.56.5</span>
+
+<span class="cmd">sudo tail -f /var/log/apache2/access.log</span>
+192.168.56.5 - "GET /admin HTTP/1.1" 404
+192.168.56.5 - "GET /.env HTTP/1.1" 404     <span class="com">← clearly a scanner</span></pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=27</span></span>
+"<span class="info">Set up a basic ELK or Wazuh stack on my target VM.
+I'll run various attacks from Phase 3 — tell me
+what gets logged, what doesn't, and which ATT&amp;CK
+technique each maps to.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 28 -->
+    <div class="day">
+      <div class="day-num">Day 28</div>
+      <h3>The report is the <em>product.</em></h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-28-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-28.md</span>
+<span class="sect-title">CORE CONCEPTS</span>
+  <span class="bullet">•</span> CVSS 3.1 scoring methodology
+  <span class="bullet">•</span> Finding anatomy: title, severity, description,
+    repro, impact, remediation, references
+  <span class="bullet">•</span> Executive summary vs technical detail
+  <span class="bullet">•</span> CWE vs CVE — when to use which
+  <span class="bullet">•</span> Writing for non-technical readers
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> Read: 3 real pentest reports — pentestreports.com
+  <span class="bullet">•</span> NIST — CVSS calculator: <span class="url">https://nvd.nist.gov/vuln-metrics</span>
+  <span class="bullet">•</span> SANS — "How to Write a Pentest Report" white paper
+  <span class="bullet">•</span> Browse: <span class="url">https://cwe.mitre.org</span>
+
+<span class="sect-title">VOCAB</span>
+  CVSS   CWE   CVE   severity   exec summary
+  evidence   PoC   remediation
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can score a finding with CVSS by hand
+  <span class="check">□</span> I can rewrite a tech finding for an exec audience
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="code">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">finding.md</span></div>
+<pre><span class="hi">## Finding: SSH weak credentials</span>
+
+<span class="info">**Severity:**</span> High  (CVSS 8.1)
+<span class="info">**Affected:**</span> 10.10.10.5:22
+<span class="info">**CWE:**</span> CWE-521 Weak Password Requirements
+
+<span class="info">### Description</span>
+SSH on the production gateway accepts password auth
+with no rate limiting. Using rockyou, the `admin`
+account fell in 6 minutes.
+
+<span class="info">### Remediation</span>
+1. <span class="ok">PasswordAuthentication no</span> in sshd_config
+2. Enforce SSH keys only
+3. Deploy fail2ban with 5-attempt threshold</pre>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=28</span></span>
+"<span class="info">I'll write 3 findings from my Phase 3 capstone work.
+Critique each like a senior consultant reviewing
+junior work. Score them with CVSS. Tear them apart.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 29 -->
+    <div class="day">
+      <div class="day-num">Day 29</div>
+      <h3>Build &amp; pwn your <em>own</em> network.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-29-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-29.md</span>
+<span class="sect-title">CORE CONCEPTS  (synthesis day)</span>
+  <span class="bullet">•</span> Network segmentation patterns
+  <span class="bullet">•</span> Multi-NIC VM configuration in VirtualBox
+  <span class="bullet">•</span> Putting EVERYTHING together: recon → exploit → pivot
+    → loot → report
+  <span class="bullet">•</span> Building your portfolio &amp; GitHub presence
+
+<span class="sect-title">RESOURCES   (≈ 60 min)</span>
+  <span class="bullet">•</span> TCM Security — "Mobile/Internal Network Pentest" walkthroughs
+  <span class="bullet">•</span> Watch any IppSec "Insane" box if curious about depth
+  <span class="bullet">•</span> Browse: <span class="url">https://github.com/swisskyrepo/PayloadsAllTheThings</span>
+
+<span class="sect-title">VOCAB</span>
+  segmentation   internal network   loot   exfil
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I can stand up a 3-VM lab in under 30 min
+  <span class="check">□</span> I can complete the full chain unaided
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <div class="callout lab">
+        <div class="callout-label">Capstone</div>
+        <div class="callout-body">Three VMs in VirtualBox: <strong>Kali</strong> (attacker), <strong>Metasploitable2</strong> (DMZ, dual-homed), <strong>Ubuntu</strong> (internal, only reachable through the DMZ). From Kali, compromise both. Document every step. Produce a five-finding report. <strong>This is the portfolio piece you show.</strong></div>
+      </div>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=29</span></span>
+"<span class="info">FINAL CAPSTONE. Help me build the 3-VM lab. Then
+shadow me through the full engagement — recon to
+report — but only intervene when I'm truly stuck.
+Treat this like my OSCP exam prep.</span>"</pre>
+      </div>
+    </div>
+
+    <!-- DAY 30 -->
+    <div class="day">
+      <div class="day-num">Day 30</div>
+      <h3>What comes after.</h3>
+
+      <div class="sect study">study brief</div>
+      <div class="code study">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">day-30-study.sh</span></div>
+<pre><span class="cmd">cat <span class="heredoc">&lt;&lt; 'BRIEF'</span> &gt; day-30.md</span>
+<span class="sect-title">CORE CONCEPTS  (reflection day)</span>
+  <span class="bullet">•</span> Where to specialize: web, internal, AD, cloud, mobile
+  <span class="bullet">•</span> Cert roadmap: eJPT → OSCP → OSWE → OSEP
+  <span class="bullet">•</span> Building a public portfolio (HTB profile, blog, GitHub)
+  <span class="bullet">•</span> Joining the community: Discord servers, Twitter, CTFs
+
+<span class="sect-title">RESOURCES  (build your long-term track)</span>
+  <span class="bullet">•</span> HackTheBox: Starting Point → easy machines
+  <span class="bullet">•</span> TryHackMe: Pre-Security &amp; Offensive Pentesting paths
+  <span class="bullet">•</span> OverTheWire Bandit (Linux mastery)
+  <span class="bullet">•</span> PortSwigger Web Security Academy (FREE, world-class)
+  <span class="bullet">•</span> OffSec PEN-200 (when you can afford OSCP)
+  <span class="bullet">•</span> Books: "The Hacker Playbook 3", "RTFM v2",
+    "The Web App Hacker's Handbook"
+
+<span class="sect-title">YOUR EDGE</span>
+  You already code (FastAPI). Most pentesters can't.
+  Automate the boring parts. Build small tools. Stand out.
+
+<span class="sect-title">SELF-CHECK</span>
+  <span class="check">□</span> I have a 90-day plan for what's next
+  <span class="check">□</span> I picked one specialization to focus on
+  <span class="check">□</span> I started one HTB box this week
+<span class="heredoc">BRIEF</span></pre>
+      </div>
+
+      <div class="sect exec">practical reference</div>
+      <ul class="next">
+        <li><strong>HackTheBox</strong> — Starting Point, then easy machines.</li>
+        <li><strong>TryHackMe</strong> — pre-built paths, gentler than HTB.</li>
+        <li><strong>OverTheWire: Bandit</strong> — Linux &amp; networking puzzles.</li>
+        <li><strong>PortSwigger Web Security Academy</strong> — free, by Burp's team.</li>
+        <li><strong>OffSec PEN-200 (OSCP)</strong> — the certification that opens jobs.</li>
+        <li><strong>Books</strong> — "The Hacker Playbook 3", "RTFM v2".</li>
+      </ul>
+
+      <div class="sect ask">ask claude when ready</div>
+      <div class="code ask">
+        <div class="code-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="label">paste this to me</span></div>
+<pre><span class="cmd">claude <span class="key">--day=30</span></span>
+"<span class="info">30 days done. Help me write a 90-day post-program
+plan. Pick a specialization based on what I enjoyed
+most. Suggest 3 HTB boxes &amp; 2 certs to target this
+quarter. Make it concrete.</span>"</pre>
+      </div>
+    </div>
+  </div>
+
+  <div class="end">
+    <div class="end-mark">fin.</div>
+    <div class="end-text">stay curious — stay legal</div>
+  </div>
+  </div>
+
+</div>
+
+<script>
+// Register Service Worker for PWA offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+      .then((reg) => console.log('[PWA] Service Worker registered:', reg.scope))
+      .catch((err) => console.error('[PWA] SW registration failed:', err));
+  });
+}
+
+// Global Navigation Controller
+(function() {
+  const ORDER = ['overview', 'phase-1', 'phase-2', 'phase-3', 'phase-4'];
+
+  const navBar       = document.getElementById('global-nav');
+  const brand        = document.getElementById('nav-brand');
+  const tabIndicator = document.getElementById('nav-indicator');
+  const btmIndicator = document.getElementById('bottom-nav-indicator');
+  const progress     = document.getElementById('nav-progress');
+  const onlinePill   = document.getElementById('nav-online');
+  const installBtn   = document.getElementById('nav-install');
+  const bottomNav    = document.getElementById('bottom-nav');
+
+  const topTabs    = Array.from(document.querySelectorAll('.nav-tab'));
+  const bottomTabs = Array.from(document.querySelectorAll('.bottom-tab'));
+  const sections   = Array.from(document.querySelectorAll('.section-content'));
+
+  let currentSection = 'overview';
+  let isAnimating = false;
+
+  // ── Indicator positioning (top + bottom) ──
+  function positionIndicator(indicator, tab) {
+    if (!indicator || !tab) return;
+    // offsetLeft is from offsetParent's padding-edge — matches CSS `left: 0`
+    indicator.style.transform = `translateX(${tab.offsetLeft}px)`;
+    indicator.style.width = `${tab.offsetWidth}px`;
+    indicator.style.opacity = '1';
+  }
+  function refreshIndicators() {
+    const topActive = document.querySelector('.nav-tab.active');
+    const btmActive = document.querySelector('.bottom-tab.active');
+    positionIndicator(tabIndicator, topActive);
+    positionIndicator(btmIndicator, btmActive);
+  }
+
+  // ── Section switching — fast opacity crossfade ──
+  function switchSection(sectionId, opts = {}) {
+    if (!ORDER.includes(sectionId)) return;
+    if (sectionId === currentSection && !opts.force) return;
+    if (isAnimating) return;
+
+    // Update tabs (top + bottom)
+    [...topTabs, ...bottomTabs].forEach(t => {
+      const isActive = t.dataset.section === sectionId;
+      t.classList.toggle('active', isActive);
+      t.setAttribute('aria-selected', isActive ? 'true' : 'false');
+    });
+
+    isAnimating = true;
+    const targetEl = document.getElementById(`section-${sectionId}`);
+    sections.forEach(s => {
+      if (s === targetEl) {
+        s.style.display = 'block';
+        s.classList.remove('active');
+        void s.offsetHeight; // reflow → opacity transitions from 0 → 1
+        s.classList.add('active');
+      } else {
+        s.classList.remove('active');
+        s.style.display = 'none';
+      }
+    });
+    setTimeout(() => { isAnimating = false; }, 220);
+
+    // Jump to top instantly — the fade-in masks the scroll
+    if (!opts.skipScroll) window.scrollTo({ top: 0, behavior: 'auto' });
+
+    currentSection = sectionId;
+    refreshIndicators();
+    try { localStorage.setItem('netrecon_active_section', sectionId); } catch (_) {}
+  }
+
+  // ── Scroll-driven UI: nav scrolled state, progress bar, bottom-nav auto-hide ──
+  let lastY = 0;
+  let ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const y = window.scrollY;
+      const doc = document.documentElement;
+      const max = Math.max(1, doc.scrollHeight - doc.clientHeight);
+      const pct = Math.min(100, Math.max(0, (y / max) * 100));
+
+      if (progress) progress.style.width = `${pct}%`;
+      navBar.classList.toggle('scrolled', y > 16);
+
+      // Auto-hide bottom-nav on scroll-down (only when meaningfully scrolling)
+      const dy = y - lastY;
+      if (Math.abs(dy) > 6 && bottomNav) {
+        if (dy > 0 && y > 120) bottomNav.classList.add('is-hidden');
+        else bottomNav.classList.remove('is-hidden');
+      }
+      lastY = y;
+      ticking = false;
+    });
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  // ── Click handlers ──
+  [...topTabs, ...bottomTabs].forEach(tab => {
+    tab.addEventListener('click', () => switchSection(tab.dataset.section));
+  });
+  if (brand) brand.addEventListener('click', () => switchSection('overview'));
+
+  // ── Keyboard navigation: ← → switch; 1–4 → Week 1–4; 0 or ` → Overview ──
+  window.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable)) return;
+    const idx = ORDER.indexOf(currentSection);
+    if (e.key === 'ArrowRight' && idx < ORDER.length - 1) { e.preventDefault(); switchSection(ORDER[idx + 1]); }
+    else if (e.key === 'ArrowLeft' && idx > 0) { e.preventDefault(); switchSection(ORDER[idx - 1]); }
+    else if (e.key === '0' || e.key === '`') { e.preventDefault(); switchSection('overview'); }
+    else if (/^[1-4]$/.test(e.key)) { e.preventDefault(); switchSection(`phase-${e.key}`); }
+  });
+
+  // ── Offline pill (hidden when online; appears only when offline) ──
+  function updateOnline() {
+    const online = navigator.onLine;
+    onlinePill.classList.toggle('is-offline', !online);
+    onlinePill.setAttribute('title', online ? 'Connected' : 'Offline — cached pages still work');
+  }
+  window.addEventListener('online', updateOnline);
+  window.addEventListener('offline', updateOnline);
+  updateOnline();
+
+  // ── PWA install prompt capture ──
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.classList.add('is-available');
+  });
+  installBtn.addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    installBtn.classList.remove('is-available');
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch (_) {}
+    deferredPrompt = null;
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null;
+    installBtn.classList.remove('is-available');
+  });
+
+  // ── Initialize & restore ──
+  function init() {
+    let saved = 'overview';
+    try { saved = localStorage.getItem('netrecon_active_section') || 'overview'; } catch (_) {}
+    if (!ORDER.includes(saved)) saved = 'overview';
+    currentSection = null; // force a real switch so indicators paint
+    switchSection(saved, { force: true, skipScroll: true });
+    // Re-position after fonts settle
+    setTimeout(refreshIndicators, 120);
+    setTimeout(refreshIndicators, 400);
+    onScroll();
+  }
+  if (document.readyState === 'complete') init();
+  else window.addEventListener('load', init);
+
+  // ── Re-align on resize / orientation ──
+  let resizeTO;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTO);
+    resizeTO = setTimeout(refreshIndicators, 80);
+  }, { passive: true });
+  window.addEventListener('orientationchange', () => setTimeout(refreshIndicators, 200));
+})();
+</script>
+</body>
+</html>

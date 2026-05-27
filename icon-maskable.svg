@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" shape-rendering="geometricPrecision">
+  <!-- Maskable: full-bleed bg, content fits inner 80% safe zone (radius ~205 from center) -->
+  <rect width="512" height="512" fill="#0a0a0c"/>
+
+  <!-- Subtle grid (within safe zone) -->
+  <g stroke="#e8e8ec" stroke-width="0.75" opacity="0.04">
+    <line x1="256" y1="100" x2="256" y2="412"/>
+    <line x1="100" y1="256" x2="412" y2="256"/>
+  </g>
+
+  <!-- Concentric radar rings (max r=160, well inside the 205 safe radius) -->
+  <g fill="none" stroke="#e8e8ec">
+    <circle cx="256" cy="256" r="160" stroke-width="2.5" opacity="0.22"/>
+    <circle cx="256" cy="256" r="116" stroke-width="2.5" opacity="0.40"/>
+    <circle cx="256" cy="256" r="72"  stroke-width="2.5" opacity="0.58"/>
+    <circle cx="256" cy="256" r="32"  stroke-width="2.5" opacity="0.82"/>
+  </g>
+
+  <!-- Center hub -->
+  <circle cx="256" cy="256" r="11" fill="#e8e8ec"/>
+
+  <!-- Sweep arm to target -->
+  <line x1="256" y1="256" x2="372" y2="180" stroke="#e8e8ec" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Acquired target -->
+  <circle cx="372" cy="180" r="22" fill="#0a0a0c" stroke="#e8e8ec" stroke-width="3.5"/>
+  <circle cx="372" cy="180" r="10" fill="#e8e8ec"/>
+</svg>

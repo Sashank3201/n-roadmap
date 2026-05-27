@@ -1,0 +1,30 @@
+{
+  "name": "Network Recon — A 30-Day Field Manual",
+  "short_name": "Netrecon",
+  "description": "Thirty days of packets, ports, and shells for network hackers.",
+  "id": "/network_recon.html",
+  "start_url": "./network_recon.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "portrait-primary",
+  "background_color": "#0a0a0c",
+  "theme_color": "#0a0a0c",
+  "categories": ["education", "productivity", "developer"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
