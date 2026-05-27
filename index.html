@@ -349,10 +349,16 @@
   .code-bar {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 8px;
     padding: 12px 16px;
     border-bottom: 1px solid var(--line);
     background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent);
+  }
+  .code-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .code-bar .dot {
     width: 10px; height: 10px; border-radius: 50%;
@@ -367,6 +373,48 @@
     font-size: 11px;
     color: var(--ink-mute);
     letter-spacing: 0.05em;
+  }
+  .copy-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--ink-soft);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    outline: none;
+    line-height: 1;
+  }
+  .copy-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--ink);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  .copy-btn.copied {
+    color: var(--green);
+    border-color: rgba(134, 239, 172, 0.3);
+    background: rgba(134, 239, 172, 0.06);
+  }
+  .code.study .copy-btn {
+    border-color: rgba(196, 181, 253, 0.15);
+    color: var(--lavender);
+  }
+  .code.study .copy-btn:hover {
+    background: rgba(196, 181, 253, 0.08);
+    color: var(--ink);
+  }
+  .code.ask .copy-btn {
+    border-color: rgba(103, 232, 249, 0.15);
+    color: var(--aqua);
+  }
+  .code.ask .copy-btn:hover {
+    background: rgba(103, 232, 249, 0.08);
+    color: var(--ink);
   }
   .code pre {
     padding: 20px 20px 22px;
@@ -3026,6 +3074,48 @@ if ('serviceWorker' in navigator) {
     installBtn.classList.remove('is-available');
   });
 
+  function initCopyButtons() {
+    const codeBlocks = document.querySelectorAll('.code');
+    codeBlocks.forEach((codeBlock) => {
+      const codeBar = codeBlock.querySelector('.code-bar');
+      const pre = codeBlock.querySelector('pre');
+      if (codeBar && pre) {
+        let codeBarLeft = codeBar.querySelector('.code-bar-left');
+        if (!codeBarLeft) {
+          const originalHTML = codeBar.innerHTML;
+          codeBar.innerHTML = '';
+          codeBarLeft = document.createElement('div');
+          codeBarLeft.className = 'code-bar-left';
+          codeBarLeft.innerHTML = originalHTML;
+          codeBar.appendChild(codeBarLeft);
+        }
+        if (!codeBar.querySelector('.copy-btn')) {
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'copy-btn';
+          copyBtn.innerHTML = `
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="copy-icon"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span>Copy</span>
+          `;
+          copyBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            let codeText = pre.innerText || pre.textContent;
+            navigator.clipboard.writeText(codeText.trim()).then(() => {
+              copyBtn.classList.add('copied');
+              copyBtn.querySelector('span').textContent = 'Copied!';
+              setTimeout(() => {
+                copyBtn.classList.remove('copied');
+                copyBtn.querySelector('span').textContent = 'Copy';
+              }, 1500);
+            }).catch(err => {
+              console.error('Failed to copy: ', err);
+            });
+          });
+          codeBar.appendChild(copyBtn);
+        }
+      }
+    });
+  }
+
   // ── Initialize & restore ──
   function init() {
     let saved = 'overview';
@@ -3037,6 +3127,7 @@ if ('serviceWorker' in navigator) {
     setTimeout(refreshIndicators, 120);
     setTimeout(refreshIndicators, 400);
     onScroll();
+    initCopyButtons();
   }
   if (document.readyState === 'complete') init();
   else window.addEventListener('load', init);
