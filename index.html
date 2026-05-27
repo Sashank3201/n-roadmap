@@ -3140,16 +3140,25 @@ if ('serviceWorker' in navigator) {
 
   // ── Initialize & restore ──
   function init() {
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
     let saved = 'overview';
     try { saved = localStorage.getItem('netrecon_active_section') || 'overview'; } catch (_) {}
     if (!ORDER.includes(saved)) saved = 'overview';
     currentSection = null; // force a real switch so indicators paint
+    window.scrollTo(0, 0);
     switchSection(saved, { force: true, skipScroll: true });
     // Re-position after fonts settle
     setTimeout(refreshIndicators, 120);
     setTimeout(refreshIndicators, 400);
     onScroll();
     initCopyButtons();
+    
+    // Ensure absolute top scroll after DOM finishes painting
+    setTimeout(() => {
+      window.scrollTo(0, 0);
+    }, 60);
   }
   if (document.readyState === 'complete') init();
   else window.addEventListener('load', init);
