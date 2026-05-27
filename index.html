@@ -389,6 +389,7 @@
     transition: all 0.2s ease;
     outline: none;
     line-height: 1;
+    flex-shrink: 0;
   }
   .copy-btn:hover {
     background: rgba(255, 255, 255, 0.08);
@@ -415,6 +416,10 @@
   .code.ask .copy-btn:hover {
     background: rgba(103, 232, 249, 0.08);
     color: var(--ink);
+  }
+  @media (max-width: 480px) {
+    .copy-btn span { display: none; }
+    .copy-btn { padding: 6px; }
   }
   .code pre {
     padding: 20px 20px 22px;
@@ -846,34 +851,18 @@
   .nav-signature {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-family: 'JetBrains Mono', monospace;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.05);
-    padding: 0 10px;
-    border-radius: 6px;
-    height: 28px;
-    user-select: none;
-  }
-  .nav-signature .sig-by {
-    color: var(--ink-mute);
-    font-size: 8.5px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .nav-signature .sig-name {
     font-family: 'Fraunces', serif;
     font-weight: 600;
     font-style: italic;
-    font-size: 13px;
+    font-size: 15px;
     background: linear-gradient(110deg, var(--aqua), var(--indigo-soft) 40%, var(--rose) 70%, var(--gold));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    letter-spacing: -0.01em;
-  }
-  @media (max-width: 480px) {
-    .nav-signature .sig-by { display: none; }
+    letter-spacing: -0.015em;
+    user-select: none;
+    margin-right: 4px;
+    cursor: default;
   }
 
   /* Refined badge — "30·DAYS" technical context chip */
@@ -1100,10 +1089,7 @@
   </div>
 
   <div class="nav-status">
-    <div class="nav-signature">
-      <span class="sig-by">Made by</span>
-      <span class="sig-name">Shanks</span>
-    </div>
+    <div class="nav-signature">Shanks</div>
     <div class="nav-badge" id="nav-online" title="30-day field manual · online">
       <span class="badge-dot" aria-hidden="true"></span>
       <span class="badge-label">30·Days</span>
